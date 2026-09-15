@@ -33,6 +33,38 @@ export function planPlacement(paragraphs: Paragraph[], clipMs: number[], totalMs
   });
 }
 
+/** 紧凑时间轴：段与段之间固定留 gap，开头留 start；语音总长决定课程时长 */
+export const COMPACT_GAP_MS = 700;
+export const COMPACT_START_MS = 2000;
+
+export interface CompactPlan {
+  placements: Placement[];
+  /** 新时间轴下的段落（文本沿用输入） */
+  paragraphs: Paragraph[];
+  totalMs: number;
+}
+
+/**
+ * 由 TTS 时长驱动时间轴（ADR 006）：每段紧接上一段结束 + gap，不再保留原录播的停顿。
+ * 板书脚本随后用 remapToTranscript 按段内相对位置映射到新时间轴。
+ */
+export function planCompact(paragraphs: Paragraph[], clipMs: number[], opts: { gapMs?: number; startMs?: number } = {}): CompactPlan {
+  const gap = opts.gapMs ?? COMPACT_GAP_MS;
+  let cursor = opts.startMs ?? COMPACT_START_MS;
+  const placements: Placement[] = [];
+  const out: Paragraph[] = [];
+  paragraphs.forEach((p, i) => {
+    const clip = clipMs[i] ?? 0;
+    const begin = cursor;
+    const end = begin + clip;
+    placements.push({ paragraph_id: p.paragraph_id, begin_ms: begin, clip_ms: clip, available_ms: clip, atempo: 1, end_ms: end });
+    out.push({ ...p, begin_time: begin, end_time: end });
+    cursor = end + gap;
+  });
+  const totalMs = out.length > 0 ? out[out.length - 1]!.end_time : 0;
+  return { placements, paragraphs: out, totalMs };
+}
+
 /** ffmpeg filter_complex：每路 atempo + adelay，再 amix 求和、裁齐到课程总长 */
 export function buildMixFilter(placements: Placement[], totalMs: number): string {
   const total = (totalMs / 1000).toFixed(3);

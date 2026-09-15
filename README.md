@@ -32,12 +32,19 @@ pnpm dev
 ## 配音与视频导出（ADR 004）
 
 ```bash
+# 视频课默认流程：紧凑时间轴（段间 0.7 s，总长 = 语音总长）
+pnpm tts --in samples/aigc-career.transcript.json --out samples/aigc-career.tts-compact.mp3 --timeline compact
+pnpm timeline --in out/aigc-career-v2.script.json --transcript samples/aigc-career.tts-compact.transcript.json --out out/aigc-career-compact.script.json
+pnpm render --script out/aigc-career-compact.script.json --audio samples/aigc-career.tts-compact.mp3 --out out/aigc-career.mp4
+
+# 需要与原视频时间轴对齐时：原时间轴模式
 pnpm tts --in samples/aigc-career.transcript.json --out samples/aigc-career.tts.mp3
-pnpm render --script out/aigc-career-v2.script.json --audio samples/aigc-career.tts.mp3 \
-  --subtitles samples/aigc-career.tts.transcript.json --out out/aigc-career.mp4
+pnpm render --script out/aigc-career-v2.fixed.script.json --audio samples/aigc-career.tts.mp3 \
+  --subtitles samples/aigc-career.tts.transcript.json --out out/aigc-career-original.mp4
 ```
 
-- `pnpm tts`：文本按术语表纠错后逐段调用阿里云 Qwen3-TTS（`.env` 的 `TTS_MODEL / TTS_VOICE`，默认 `qwen3-tts-flash` / `Ethan`），每段放在原 `begin_time`、段间静音，必要时 `atempo` 加速，总长等于课程时长；同时写出 `<name>.tts.transcript.json`（时间不变、文本纠错）。段结果按内容哈希缓存在 `out/tts-cache/`。需要 `ffmpeg / ffprobe`。
+- `pnpm tts`：文本按术语表纠错后逐段调用阿里云 Qwen3-TTS（`.env` 的 `TTS_MODEL / TTS_VOICE`，默认 `qwen3-tts-flash` / `Ethan`）。`--timeline compact` 段与段紧接、留 `--gap` 毫秒；`--timeline original` 每段放在原 `begin_time`、必要时 `atempo` 加速。同时写出 `<name>.transcript.json`（文本纠错，时间为所选时间轴）。段结果按内容哈希缓存在 `out/tts-cache/`。需要 `ffmpeg / ffprobe`。
+- `pnpm timeline --transcript`：把已有板书脚本按每条动作在段内的相对位置映射到新讲解稿的时间轴（ADR 006），并套用"有语音时白板不为空"（ADR 005）。
 - `pnpm render`：在 `?render=1` 模式下用 Playwright 逐帧 `setTime` 截图，管道交给 ffmpeg 合成 1920×1080 @ 25 fps 的 mp4（libx264 + aac）；约 1× 实时速度。`--until 10000` 先渲染 10 秒验证；`--subtitles` 用配音版讲解稿覆盖字幕。
 - 播放器试听：`/?script=out/aigc-career-v2.script.json&audio=samples/aigc-career.tts.mp3&subtitles=samples/aigc-career.tts.transcript.json`
 

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Action, BoardScript } from "../../src/shared/schema";
 import { parseScript } from "../../src/shared/schema";
-import { PRE_SPEECH_LEAD_MS, emptyBoardIntervals, ensureBoardNotEmpty, totalEmptyMs } from "../../src/generator/timeline";
+import { PRE_SPEECH_LEAD_MS, emptyBoardIntervals, ensureBoardNotEmpty, remapToTranscript, totalEmptyMs } from "../../src/generator/timeline";
 
 const paragraphs = [
   { paragraph_id: "p1", text: "一".repeat(20), begin_time: 10000, end_time: 30000 },
@@ -70,6 +70,44 @@ describe("ensureBoardNotEmpty", () => {
     const r = ensureBoardNotEmpty(mid, paragraphs);
     expect(r.actions[2]!.at).toBe(20000);
     expect(r.actions[3]!.at).toBe(20000);
+  });
+  it("remapToTranscript：按段内相对位置映射到紧凑时间轴，段落/小节/时长随之更新", () => {
+    const script: BoardScript = {
+      version: "1.0",
+      meta: { title: "t", duration_ms: 70000, generated_at: "x", model: "m" },
+      paragraphs,
+      sections: [
+        { id: "s1", title: "一", intent: "", paragraph_ids: ["p1", "p2"], begin_ms: 10000, end_ms: 50000 },
+        { id: "s2", title: "二", intent: "", paragraph_ids: ["p3"], begin_ms: 56000, end_ms: 70000 },
+      ],
+      actions,
+    };
+    // 紧凑：p1 2000–12000（一半长），p2 12700–22700，p3 23400–30400
+    const compact = [
+      { ...paragraphs[0]!, begin_time: 2000, end_time: 12000, text: "改" },
+      { ...paragraphs[1]!, begin_time: 12700, end_time: 22700 },
+      { ...paragraphs[2]!, begin_time: 23400, end_time: 30400 },
+    ];
+    const r = remapToTranscript(script, compact);
+    expect(parseScript(r.script).ok).toBe(true);
+    expect(r.script.meta.duration_ms).toBe(30400);
+    expect(r.script.paragraphs[0]!.text).toBe("改");
+    expect(r.script.sections.map((s) => [s.begin_ms, s.end_ms])).toEqual([
+      [2000, 22700],
+      [23400, 30400],
+    ]);
+    const byId = new Map(r.script.actions.map((a) => [a.id, a]));
+    // a003 highlight 原在 p1 的 50%（20000/10000–30000）→ 新 7000；until 原 30000（100%）→ 12000
+    expect(byId.get("a003")).toMatchObject({ at: 7000, until: 12000 });
+    // a007 board 原在 p2 的 (45000−30500)/19500 → 新 12700 + 0.7436×10000 ≈ 20136；reveal 不超过窗口剩余
+    const a007 = byId.get("a007")!;
+    expect(a007.at).toBe(20136);
+    expect(a007.type === "board" && a007.reveal_ms).toBe(600);
+    // 首页与首卡：ADR 005 让它们提前到 0（p1 前只有 2 秒静默）
+    expect(byId.get("a001")!.at).toBe(0);
+    expect(byId.get("a002")!.at).toBe(0);
+    expect(totalEmptyMs(emptyBoardIntervals(r.script.actions, r.script.paragraphs))).toBe(0);
+    for (let i = 1; i < r.script.actions.length; i++) expect(r.script.actions[i]!.at).toBeGreaterThanOrEqual(r.script.actions[i - 1]!.at);
   });
   it("套用到 demo fixture 后仍通过 parseScript 且空板为 0", () => {
     const demo = JSON.parse(readFileSync("tests/fixtures/demo.script.json", "utf8")) as BoardScript;

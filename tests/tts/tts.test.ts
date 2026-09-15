@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { loadGlossary } from "../../src/generator/glossary";
 import { applyGlossary } from "../../src/tts/glossary-apply";
-import { GAP_MS, MAX_ATEMPO, buildMixFilter, planPlacement } from "../../src/tts/placement";
+import { GAP_MS, MAX_ATEMPO, buildMixFilter, planCompact, planPlacement } from "../../src/tts/placement";
 
 describe("applyGlossary", () => {
   it("把 ASR 错误替换为正确写法", () => {
@@ -35,6 +35,24 @@ describe("planPlacement", () => {
     const [, , c] = planPlacement(ps, [3000, 2000, 9000], 12000);
     expect(c!.available_ms).toBe(12000 - 9000 - GAP_MS);
     expect(c!.atempo).toBe(MAX_ATEMPO);
+  });
+});
+
+describe("planCompact", () => {
+  it("段与段紧接，中间留 gap，开头留 start；总长 = 最后一段结束", () => {
+    const plan = planCompact(ps, [3000, 2000, 4000], { gapMs: 700, startMs: 2000 });
+    expect(plan.paragraphs.map((p) => [p.begin_time, p.end_time])).toEqual([
+      [2000, 5000],
+      [5700, 7700],
+      [8400, 12400],
+    ]);
+    expect(plan.placements.map((p) => [p.begin_ms, p.atempo])).toEqual([
+      [2000, 1],
+      [5700, 1],
+      [8400, 1],
+    ]);
+    expect(plan.totalMs).toBe(12400);
+    expect(plan.paragraphs[0]!.text).toBe("a");
   });
 });
 

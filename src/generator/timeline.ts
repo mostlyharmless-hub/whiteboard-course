@@ -1,4 +1,5 @@
-import type { Action, Paragraph } from "../shared/schema";
+import type { Action, BoardScript, Paragraph } from "../shared/schema";
+import { REVEAL_MIN_MS } from "./resolve";
 
 /** 翻页最多比该段语音提前多少进入（只能提前进静默，不打断上一段） */
 export const PRE_SPEECH_LEAD_MS = 2000;
@@ -47,6 +48,54 @@ export function ensureBoardNotEmpty(actions: Action[], paragraphs: Paragraph[]):
     }
   }
   return { actions: out, changes };
+}
+
+/**
+ * 把脚本映射到另一份时间轴不同的讲解稿（段落 id 相同，如 TTS 紧凑时间轴，ADR 006）：
+ * 每条动作按锚点段落内的相对位置换算 at / until，reveal_ms 不超过新窗口剩余；
+ * 段落文本与时间、小节起止、duration_ms 全部换成新讲解稿的；最后套用 ensureBoardNotEmpty。
+ */
+export function remapToTranscript(script: BoardScript, target: Paragraph[]): { script: BoardScript; changes: string[] } {
+  const oldById = new Map(script.paragraphs.map((p) => [p.paragraph_id, p]));
+  const newById = new Map(target.map((p) => [p.paragraph_id, p]));
+  for (const p of script.paragraphs) {
+    if (!newById.has(p.paragraph_id)) throw new Error(`新讲解稿缺少段落 ${p.paragraph_id}`);
+  }
+  const mapTime = (t: number, oldP: Paragraph, newP: Paragraph): number => {
+    const oldDur = Math.max(1, oldP.end_time - oldP.begin_time);
+    const ratio = (t - oldP.begin_time) / oldDur;
+    return Math.round(newP.begin_time + ratio * (newP.end_time - newP.begin_time));
+  };
+  let prevAt = 0;
+  const actions: Action[] = script.actions.map((a) => {
+    const oldP = oldById.get(a.anchor.paragraph_id)!;
+    const newP = newById.get(a.anchor.paragraph_id)!;
+    const at = Math.max(prevAt, Math.max(0, mapTime(a.at, oldP, newP)));
+    prevAt = at;
+    switch (a.type) {
+      case "board":
+        return { ...a, at, reveal_ms: Math.max(REVEAL_MIN_MS, Math.min(a.reveal_ms, newP.end_time - at)) };
+      case "mermaid":
+        return { ...a, at };
+      case "highlight":
+      case "circle":
+        return { ...a, at, until: Math.max(at + 1500, mapTime(a.until, oldP, newP)) };
+      default:
+        return { ...a, at };
+    }
+  });
+  const paragraphs = script.paragraphs.map((p) => newById.get(p.paragraph_id)!);
+  const sections = script.sections.map((s) => ({
+    ...s,
+    begin_ms: newById.get(s.paragraph_ids[0]!)!.begin_time,
+    end_ms: newById.get(s.paragraph_ids[s.paragraph_ids.length - 1]!)!.end_time,
+  }));
+  const duration_ms = Math.max(...paragraphs.map((p) => p.end_time));
+  const fixed = ensureBoardNotEmpty(actions, paragraphs);
+  return {
+    script: { ...script, meta: { ...script.meta, duration_ms }, paragraphs, sections, actions: fixed.actions },
+    changes: [`时间轴映射：${script.meta.duration_ms} ms → ${duration_ms} ms`, ...fixed.changes],
+  };
 }
 
 export interface EmptyInterval {
