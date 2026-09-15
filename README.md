@@ -19,6 +19,7 @@ pnpm gen --in samples/aigc-career.transcript.json --out out/aigc-career.script.j
 - 每次 LLM 调用的提示词与响应落在 `out/<name>.llm/`，响应文件可作为 `--fixture <dir>` 离线复现：`pnpm gen --in … --out … --fixture out/<name>.llm`。
 - `--dry-run` 只打印报告；`--glossary` 指定术语表（默认 `config/glossary.json`）。
 - 提示词在 `prompts/*.md`（一行 `===== USER =====` 之前是 system，之后是 user 模板），改提示词不需要改代码。
+- 生成末尾自动套用时间轴后处理（ADR 005）：翻页可提前进入语音前的静默、每页第一张卡随翻页落笔，保证有语音时白板不为空；报告里有对应指标。对已有脚本可单独执行 `pnpm timeline --in old.script.json --out new.script.json`。
 
 ## 播放
 

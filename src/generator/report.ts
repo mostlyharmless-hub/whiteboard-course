@@ -1,3 +1,4 @@
+import { emptyBoardIntervals, totalEmptyMs } from "./timeline";
 import type { GenerateResult } from "./types";
 
 const yesNo = (ok: boolean) => (ok ? "✅" : "❌");
@@ -35,7 +36,13 @@ export function renderReport(r: GenerateResult, opts: { source: string; out: str
   lines.push(`| 无卡片的小节 | ${sectionsWithoutCard.map((s) => s.section.id).join(", ") || "无"} | 每节 ≥ 1 | ${yesNo(sectionsWithoutCard.length === 0)} |`);
   lines.push(`| 标注数 | ${marks} | ≤ 8（建议） | ${yesNo(marks <= 8)} |`);
   lines.push(`| at + reveal_ms 超出段落 | ${overrun.map((c) => c.card_id).join(", ") || "无"} | 无 | ${yesNo(overrun.length === 0)} |`);
+  const empty = emptyBoardIntervals(script.actions, script.paragraphs);
+  const emptyMs = totalEmptyMs(empty);
+  lines.push(`| 有语音但白板为空 | ${(emptyMs / 1000).toFixed(1)} 秒${empty.length > 0 ? `（${empty.map((e) => `${e.paragraph_id} ${(e.from / 1000).toFixed(1)}–${(e.to / 1000).toFixed(1)}s`).join("、")}）` : ""} | 0 | ${yesNo(emptyMs === 0)} |`);
   lines.push(`| 脚本自检 | ${r.issues.length} 处问题 | 0 | ${yesNo(r.issues.length === 0)} |`, "");
+  if (r.timelineChanges.length > 0) {
+    lines.push("## 时间轴修正（有语音时白板不为空）", "", ...r.timelineChanges.map((c) => `- ${c}`), "");
+  }
 
   lines.push("## 各节", "");
   lines.push("| 节 | 标题 | 时长(s) | 卡片 | 标注 | 秒/卡 | 打回 | warning | error | 丢弃 |", "|---|---|---|---|---|---|---|---|---|---|");

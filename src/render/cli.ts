@@ -4,10 +4,10 @@ import { once } from "node:events";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-const USAGE = `用法：pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitles <transcript.json>] [--fps 25] [--width 1920] [--height 1080] [--from 0] [--until <ms>] [--port 5175]
+const USAGE = `用法：pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitles <transcript.json>] [--fps 25] [--width 1920] [--height 1080] [--from 0] [--until <ms>] [--tail 2000] [--port 5175]
 
 按帧把播放器画面（?render=1 模式）截图后用 ffmpeg 与配音合成 mp4；画面与音频按脚本时间严格对齐。
---until 只渲染到指定毫秒（先渲染 10 秒验证：--until 10000）。端口已有服务器时直接复用。
+--until 只渲染到指定毫秒（先渲染 10 秒验证：--until 10000）；--tail 在课程结束后多停留的毫秒数（板书晚于语音消失）。端口已有服务器时直接复用。
 `;
 
 interface Args {
@@ -20,11 +20,12 @@ interface Args {
   height: number;
   from: number;
   until?: number;
+  tail: number;
   port: number;
 }
 
 function parseArgs(argv: string[]): Args {
-  const a: Partial<Args> = { fps: 25, width: 1920, height: 1080, from: 0, port: 5175 };
+  const a: Partial<Args> = { fps: 25, width: 1920, height: 1080, from: 0, tail: 2000, port: 5175 };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i]!;
     const next = () => {
@@ -59,6 +60,9 @@ function parseArgs(argv: string[]): Args {
         break;
       case "--until":
         a.until = Number(next());
+        break;
+      case "--tail":
+        a.tail = Number(next());
         break;
       case "--port":
         a.port = Number(next());
@@ -101,7 +105,8 @@ async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
   if (args.audio && !existsSync(args.audio)) throw new Error(`音频不存在：${args.audio}`);
   const script = JSON.parse(readFileSync(args.script, "utf8")) as { meta: { duration_ms: number; title: string } };
-  const until = Math.min(args.until ?? script.meta.duration_ms, script.meta.duration_ms);
+  // 课程结束后多停 tail 毫秒（播放器把 t 钳到 duration，画面保持最后状态；音频用 apad 补静音）
+  const until = args.until !== undefined ? Math.min(args.until, script.meta.duration_ms) : script.meta.duration_ms + args.tail;
   const frames = Math.ceil(((until - args.from) / 1000) * args.fps);
   mkdirSync(dirname(args.out), { recursive: true });
 
@@ -120,7 +125,7 @@ async function main(): Promise<number> {
     const ffArgs = ["-y", "-hide_banner", "-loglevel", "error", "-f", "image2pipe", "-framerate", String(args.fps), "-i", "-"];
     if (args.audio) ffArgs.push("-ss", (args.from / 1000).toFixed(3), "-i", args.audio);
     ffArgs.push("-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-r", String(args.fps));
-    if (args.audio) ffArgs.push("-c:a", "aac", "-b:a", "160k", "-shortest");
+    if (args.audio) ffArgs.push("-af", "apad", "-c:a", "aac", "-b:a", "160k", "-shortest");
     ffArgs.push(args.out);
     ffmpeg = spawn("ffmpeg", ffArgs, { stdio: ["pipe", "inherit", "inherit"] });
     const stdin = ffmpeg.stdin!;

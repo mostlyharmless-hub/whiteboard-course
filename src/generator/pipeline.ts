@@ -3,6 +3,7 @@ import { assemble, initialLayout, stepLayout } from "./assemble";
 import type { LlmClient } from "./llm/types";
 import { generateOutline } from "./outline";
 import { generateSection } from "./script";
+import { ensureBoardNotEmpty } from "./timeline";
 import { emptyUsage, type GenerateResult, type Glossary, type SectionResult, type Transcript } from "./types";
 
 export interface GenerateOptions {
@@ -47,6 +48,8 @@ export async function generate(opts: GenerateOptions): Promise<GenerateResult> {
     }
   }
 
+  const timeline = ensureBoardNotEmpty(assemble(results), transcript.paragraphs);
+  if (timeline.changes.length > 0) onProgress?.(`[timeline] ${timeline.changes.length} 处时间提前，保证有语音时白板不为空`);
   const script: BoardScript = {
     version: "1.0",
     meta: {
@@ -58,10 +61,10 @@ export async function generate(opts: GenerateOptions): Promise<GenerateResult> {
     },
     paragraphs: transcript.paragraphs,
     sections: outline.sections,
-    actions: assemble(results),
+    actions: timeline.actions,
   };
   const check = parseScript(script);
   const issues = check.ok ? [] : check.issues;
   if (issues.length > 0) onProgress?.(`[check] 最终脚本自检发现 ${issues.length} 处问题`);
-  return { script, results, usage, issues, model: llm.model };
+  return { script, results, usage, issues, model: llm.model, timelineChanges: timeline.changes };
 }

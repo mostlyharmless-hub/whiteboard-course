@@ -15,7 +15,8 @@
     "gen": "tsx src/generator/cli.ts",
     "e2e": "playwright test",
     "tts": "tsx src/tts/cli.ts",
-    "render": "tsx src/render/cli.ts"
+    "render": "tsx src/render/cli.ts",
+    "timeline": "tsx src/generator/timeline-cli.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

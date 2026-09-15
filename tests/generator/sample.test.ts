@@ -5,6 +5,7 @@ import { loadGlossary } from "../../src/generator/glossary";
 import { createFixtureClient } from "../../src/generator/llm";
 import { generate } from "../../src/generator/pipeline";
 import { marksPerSection } from "../../src/generator/script";
+import { PRE_SPEECH_LEAD_MS, emptyBoardIntervals, totalEmptyMs } from "../../src/generator/timeline";
 import { parseScript } from "../../src/shared/schema";
 
 /**
@@ -28,9 +29,12 @@ describe("样例课程（qwen3.8-max 录制响应）", () => {
     expect(cards.length).toBeGreaterThanOrEqual(8);
     expect(actions.filter((a) => a.type === "new_page").length).toBeGreaterThanOrEqual(3);
     expect(actions.some((a) => a.type === "mermaid")).toBe(true);
+    // 每页首卡可比小节开始提前进入静默（ADR 005），判定时容忍这个提前量
     for (const s of r.script.sections) {
-      expect(cards.some((c) => c.at >= s.begin_ms && c.at <= s.end_ms), `小节 ${s.id} 没有卡片`).toBe(true);
+      expect(cards.some((c) => c.at >= s.begin_ms - PRE_SPEECH_LEAD_MS && c.at <= s.end_ms), `小节 ${s.id} 没有卡片`).toBe(true);
     }
+    expect(totalEmptyMs(emptyBoardIntervals(actions, transcript.paragraphs))).toBe(0);
+    expect(r.timelineChanges.length).toBeGreaterThan(0);
     const byId = new Map(transcript.paragraphs.map((p) => [p.paragraph_id, p]));
     for (const a of actions) {
       expect(a.at).toBeGreaterThanOrEqual(0);

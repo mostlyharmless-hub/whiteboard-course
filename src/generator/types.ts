@@ -53,4 +53,6 @@ export interface GenerateResult {
   /** 最终脚本自检（parseScript）未通过时的问题清单 */
   issues: ScriptIssue[];
   model: string;
+  /** 时间轴后处理（ADR 005：有语音时白板不为空）的修改记录 */
+  timelineChanges: string[];
 }

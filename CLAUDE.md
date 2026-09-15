@@ -251,6 +251,8 @@ reveal_ms(mermaid) = 800
 until(highlight|circle) = p.end_time（不早于 at + 1500）
 ```
 
+装配后的时间轴后处理（ADR 005，2026-09-15）：有语音时白板不能为空。`new_page` 若锚在某段开头，可提前进入前面的静默（`at = max(上一段 end_time, begin_time − 2000, 前一动作 at)`）；翻页后到第一张卡之间的动作一律提前到 `new_page` 时刻。这是对"不早于本段开始"的唯一例外。`pnpm timeline --in --out` 可对已有脚本套用；报告有"有语音但白板为空"指标，验收要求 0。
+
 ### 6.5 validate & autofix
 
 用 zod 校验结构，再做语义校验（第 5.2、5.4 节全部规则）。分两类处理：
