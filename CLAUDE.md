@@ -309,7 +309,7 @@ Vite + React 18 单页应用，`pnpm dev` 启动后通过 `?script=out/aigc-care
 
 ### 7.3 卡片渲染与手写风格
 
-- Markdown 用 `markdown-it` 渲染，`katex` 插件处理公式，禁用 html。
+- Markdown 用 `markdown-it` 渲染，`katex` 插件处理公式，禁用 html；`breaks: true`（卡片里的单个换行就是换行——模型和老师都这么写，与 `estimateLines` 按行计数一致）。
 - Mermaid 用 `mermaid` ≥ 11，`look: "handDrawn"`，字体设为手写字体。渲染是异步的，卡片先占位再替换，不阻塞主时钟。
 - 字体：中文手写体（小赖字体 Xiaolai，或霞鹜文楷 LXGW WenKai，二选一，见第 13 节）+ 拉丁 Virgil / Excalifont；全部自托管在 `public/fonts/`，`font-display: swap`（Xiaolai 单文件；Excalifont 沿用 excalidraw 仓库的 7 个 unicode-range 子集）。`--font-hand` 回退栈落到本机楷体（Kaiti SC / STKaiti），见 `public/fonts/README.md`。字号：页首 `#` 30px，`##` 24px，正文 21px。
 - 手绘感：卡片边框、引用竖线套用 SVG 滤镜 `feTurbulence(fractalNoise, baseFrequency 0.035, numOctaves 2) + feDisplacementMap(scale 2.2)`；文字不套滤镜（会糊）。表格线暂不套滤镜——表格的边框与文字在同一元素上，滤镜会把文字一起糊掉，M1 保留直线。每张卡片按 `card_id` 哈希取 −0.4° 到 0.4° 的微小旋转。

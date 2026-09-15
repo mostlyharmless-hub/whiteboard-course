@@ -8,7 +8,8 @@ type KatexPlugin = (md: Md, options?: MarkdownKatexOptions) => Md;
 const katexPlugin: KatexPlugin =
   typeof katexImport === "function" ? katexImport : (katexImport as unknown as { default: KatexPlugin }).default;
 
-const md = new MarkdownIt({ html: false, linkify: false, breaks: false, typographer: false });
+// breaks: true —— 板书里模型常用单个换行分行（"效果：…\n金句：…"），按老师换行的意图渲染，而不是合并成一段
+const md = new MarkdownIt({ html: false, linkify: false, breaks: true, typographer: false });
 md.use(katexPlugin, { throwOnError: false });
 
 // 板书不允许图片与链接：图片渲染为其替代文字，链接只保留文字
