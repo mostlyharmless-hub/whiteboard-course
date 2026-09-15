@@ -6,14 +6,18 @@ interface ChatCompletion {
   error?: { message?: string };
 }
 
+/** 单次请求超时；带推理的模型一节可能要 1–2 分钟 */
+export const REQUEST_TIMEOUT_MS = 180_000;
+
 /** OpenAI-compatible /chat/completions（供国内模型接入），用内置 fetch 实现，不引入 SDK */
-export function createOpenAiCompatibleClient(opts: { apiKey: string; model: string; baseUrl: string }): LlmClient {
+export function createOpenAiCompatibleClient(opts: { apiKey: string; model: string; baseUrl: string; timeoutMs?: number }): LlmClient {
   const url = `${opts.baseUrl.replace(/\/+$/, "")}/chat/completions`;
   return {
     model: opts.model,
     async complete(req: LlmRequest, tag: string): Promise<LlmResponse> {
       const res = await fetch(url, {
         method: "POST",
+        signal: AbortSignal.timeout(opts.timeoutMs ?? REQUEST_TIMEOUT_MS),
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${opts.apiKey}` },
         body: JSON.stringify({
           model: opts.model,
