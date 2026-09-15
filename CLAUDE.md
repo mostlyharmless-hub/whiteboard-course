@@ -448,7 +448,7 @@ whiteboard-course/
 
 1. **M1 播放器骨架（不依赖 LLM）** ✅ 2026-09-15 完成（分支 `feat/m1-player-skeleton`，计划见 `docs/superpowers/plans/2026-09-15-m1-player-skeleton.md`）：`shared/schema`、`shared/reducer`、手写 `tests/fixtures/minimal.script.json`（覆盖全部 6 种动作）与 `demo.script.json`，播放器计时器模式跑通：画布、布局、Markdown/Mermaid 渲染、逐字揭示、高亮/画圈、翻页、字幕。`pnpm dev` 后打开 `/?script=tests/fixtures/demo.script.json` 评估观感。遗留：字体文件待放入 `public/fonts/`；Playwright 用例留到 M4。
 2. **M2 生成器离线链路** ✅ 2026-09-15 完成（计划见 `docs/superpowers/plans/2026-09-15-m2-m3-generator.md`）：`ingest / resolve / validate / assemble / report` + fixture 客户端，`tests/generator/` 59 个用例，`pnpm gen --fixture tests/fixtures/llm/mini` 可离线跑通。
-3. **M3 接入 LLM**：代码已完成（`prompts/*`、`llm/anthropic.ts`、`llm/openai-compatible.ts`、打回重生）；**待办**：用户填好 `.env` 后对样例课程跑真实生成，用播放器看效果，迭代 `prompts/script.md` 直到样例验收通过。
+3. **M3 接入 LLM** ✅ 2026-09-15 完成：阿里云 `qwen3.8-max`（OpenAI 兼容模式）对样例课程两次真实生成均 error 0、warning 0、7 节全部首轮通过，验收指标全部满足。提示词迭代记录：v1 几乎只用左栏（每页 `1+2 / 3+2 / 3+2 / 3 / 1 / 1`）、标注 9 次；加入"横向铺开"与"标注按节数分摊"后 v2 为 `1+1+1 / 1+1+1 / 1+2+2 / 1+1+1 / 1+1 / 1`、标注 5 次、Mermaid 6 张。随后加了"流程图只在有分支/循环/依赖时才画"一条（尚未用真实生成验证）。v1 响应作为离线回归 fixture（`tests/fixtures/llm/aigc-career-qwen/`）。
 4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。已完成（2026-09-15）：`pnpm e2e`（`tests/e2e/player.spec.ts`，`@playwright/test` 锁定 1.61.1 以匹配本机缓存的 chromium 1228；含静音 WAV 的音频模式用例）、`docs/adr/001–003`、README、播放器 `?t=` 初始定位参数、小视口聚焦当前栏、手写字体文件。**未完成**：用真实录播音频实测音频模式（缺样例 mp3）。
 
 每个里程碑结束时更新本文件中与实现不符的描述。
