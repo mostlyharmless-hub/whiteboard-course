@@ -303,8 +303,9 @@ Vite + React 18 单页应用，`pnpm dev` 启动后通过 `?script=out/aigc-care
 
 - Markdown 用 `markdown-it` 渲染，`katex` 插件处理公式，禁用 html。
 - Mermaid 用 `mermaid` ≥ 11，`look: "handDrawn"`，字体设为手写字体。渲染是异步的，卡片先占位再替换，不阻塞主时钟。
-- 字体：中文手写体（小赖字体 Xiaolai，或霞鹜文楷 LXGW WenKai，二选一，见第 13 节）+ 拉丁 Virgil / Excalifont；全部自托管在 `public/fonts/`，`font-display: swap`。字号：页首 `#` 30px，`##` 24px，正文 21px。
-- 手绘感：卡片边框、表格线、引用竖线套用 SVG 滤镜 `feTurbulence(fractalNoise, baseFrequency 0.035, numOctaves 2) + feDisplacementMap(scale 2.2)`；文字不套滤镜（会糊）。每张卡片按 `card_id` 哈希取 −0.4° 到 0.4° 的微小旋转。
+- 字体：中文手写体（小赖字体 Xiaolai，或霞鹜文楷 LXGW WenKai，二选一，见第 13 节）+ 拉丁 Virgil / Excalifont；全部自托管在 `public/fonts/`，`font-display: swap`。字体文件放入前，`--font-hand` 回退栈落到本机楷体（Kaiti SC / STKaiti），见 `public/fonts/README.md`。字号：页首 `#` 30px，`##` 24px，正文 21px。
+- 手绘感：卡片边框、引用竖线套用 SVG 滤镜 `feTurbulence(fractalNoise, baseFrequency 0.035, numOctaves 2) + feDisplacementMap(scale 2.2)`；文字不套滤镜（会糊）。表格线暂不套滤镜——表格的边框与文字在同一元素上，滤镜会把文字一起糊掉，M1 保留直线。每张卡片按 `card_id` 哈希取 −0.4° 到 0.4° 的微小旋转。
+- Mermaid 用 `securityLevel: strict`（默认）、`htmlLabels: false`、字号 20px；Markdown 渲染关闭 html、图片退化为替代文字、链接只保留文字，因此 `dangerouslySetInnerHTML` 只接收已转义内容。
 - 配色：墨色 `#1e1e1e`，卡片底透明（白板本身是米白 `#fbfaf7` + 点阵），荧光笔 `rgba(255, 214, 0, .45)`，圈选 `#e03131`。
 
 ### 7.4 揭示动画
@@ -330,8 +331,9 @@ Vite + React 18 单页应用，`pnpm dev` 启动后通过 `?script=out/aigc-care
 
 - 顶栏：课程标题、缩放 pill（−/百分比/+）、页码导航（‹ 当前/总 ›）、跟随开关。
 - 左侧栏（可折叠）：小节大纲，当前节高亮，点击跳转到该节 `begin_ms`。
-- 底部：播放/暂停、进度条（带小节刻度）、时间、倍速、字幕开关；字幕显示当前段落文本。
-- 界面文案中文；不用组件库，Tailwind 或纯 CSS 均可，保持依赖最少。
+- 底部：播放/暂停、进度条（带小节刻度）、时间、倍速、字幕开关；字幕显示当前**句子**：在当前段落内按句末标点（。！？；）切句，按字符位置线性插值定位（与 6.4 的锚点换算规则一致，`shared/lookup.ts` 的 `sentenceAt`）。整段 ASR 文本过长，直接显示会盖住板书。
+- 快捷键：空格播放/暂停，← / → 前后 5 秒。
+- 界面文案中文；不用组件库，纯 CSS，保持依赖最少。
 
 ## 8. 目录结构
 
@@ -355,9 +357,10 @@ whiteboard-course/
 │   └── hyperknow-analysis.md      # 参考实现调研
 ├── src/
 │   ├── shared/                    # 纯类型与纯函数，Node/浏览器共用
-│   │   ├── schema.ts              # zod schema + 类型导出
+│   │   ├── schema.ts              # zod schema + 类型导出 + validateSemantics / parseScript
 │   │   ├── budget.ts              # 纯文本字数/行数估算、预算常量
-│   │   └── reducer.ts             # apply(state, action)、state(t)
+│   │   ├── reducer.ts             # apply(state, action)、stateAt(actions, t)、countApplied
+│   │   └── lookup.ts              # paragraphAt / sentenceAt / sectionAt（按 t 二分）
 │   ├── generator/
 │   │   ├── cli.ts
 │   │   ├── ingest.ts
@@ -368,18 +371,22 @@ whiteboard-course/
 │   │   ├── report.ts
 │   │   └── llm/                   # LlmClient 接口、anthropic.ts、openai-compatible.ts、fixture.ts
 │   └── player/
-│       ├── main.tsx
-│       ├── App.tsx
+│       ├── main.tsx               # 读 URL 参数、加载校验、挂载；失败时列出第几条动作
+│       ├── App.tsx                # 时钟 + 状态 + 相机跟随 + UI 组合
+│       ├── loadScript.ts
 │       ├── clock/                 # useClock（audio / timer）
-│       ├── canvas/                # PanZoom、Page、Column、Card、Marks
-│       ├── render/                # markdown、mermaid、reveal（字符拆分）
+│       ├── state/                 # useBoardState（前进增量、后退重算）
+│       ├── canvas/                # layout 常量、PanZoom、Page、Column、Card、Marks
+│       ├── render/                # markdown、mermaid、reveal（字符拆分、snippet 定位）
 │       ├── ui/                    # TopBar、Sidebar、BottomBar、Subtitle
-│       └── styles/                # 字体、滤镜、主题
-└── tests/
-    ├── shared/                    # schema、budget、reducer
-    ├── generator/                 # resolve、validate（用 fixtures）
-    ├── fixtures/                  # 预录 LLM 响应、手写的最小脚本
-    └── e2e/                       # Playwright：计时器模式下定点截图
+│       └── styles/                # fonts.css、board.css、ui.css
+├── tests/
+│   ├── shared/                    # schema、budget、reducer、lookup、fixtures
+│   ├── generator/                 # resolve、validate（用 fixtures）
+│   ├── fixtures/                  # minimal.script.json（6 条动作）、demo.script.json（样例课程手写 3 页+）、预录 LLM 响应
+│   └── e2e/                       # Playwright：计时器模式下定点截图
+├── docs/superpowers/plans/        # 各里程碑的实施计划
+└── .claude/launch.json            # `pnpm dev` 的浏览器预览配置
 ```
 
 ## 9. 技术选型与依赖
@@ -389,7 +396,7 @@ whiteboard-course/
 | 语言 | TypeScript 5，`strict: true`，禁止 `any` | 共享代码不含运行时依赖 |
 | 包管理 | pnpm，单包 | 原型阶段不做 workspace |
 | 前端 | React 18 + Vite | 函数组件 + hooks，状态用 `useReducer` + context，不引入状态库 |
-| Markdown | markdown-it + markdown-it-katex（或 @vscode/markdown-it-katex） | 关闭 html |
+| Markdown | markdown-it 15 + @vscode/markdown-it-katex | 关闭 html；后者是 CJS `exports.default`，默认导入需兼容"函数"与"模块对象"两种形态（见 `render/markdown.ts`） |
 | 公式 | katex | 自托管 CSS 与字体 |
 | 图表 | mermaid ≥ 11 | `look: "handDrawn"` |
 | 校验 | zod | schema 即契约 |
@@ -434,7 +441,7 @@ whiteboard-course/
 
 ## 12. 实施顺序
 
-1. **M1 播放器骨架（不依赖 LLM）**：`shared/schema`、`shared/reducer`、手写 `tests/fixtures/minimal.script.json`（覆盖全部 6 种动作），播放器计时器模式跑通：画布、布局、Markdown/Mermaid 渲染、逐字揭示、高亮/画圈、翻页、字幕。此时即可人工评估观感，观感不对先调这里。
+1. **M1 播放器骨架（不依赖 LLM）** ✅ 2026-09-15 完成（分支 `feat/m1-player-skeleton`，计划见 `docs/superpowers/plans/2026-09-15-m1-player-skeleton.md`）：`shared/schema`、`shared/reducer`、手写 `tests/fixtures/minimal.script.json`（覆盖全部 6 种动作）与 `demo.script.json`，播放器计时器模式跑通：画布、布局、Markdown/Mermaid 渲染、逐字揭示、高亮/画圈、翻页、字幕。`pnpm dev` 后打开 `/?script=tests/fixtures/demo.script.json` 评估观感。遗留：字体文件待放入 `public/fonts/`；Playwright 用例留到 M4。
 2. **M2 生成器离线链路**：`ingest / resolve / validate / report` + 用 fixture 冒充 LLM 响应的 `script` 流程，单元测试全绿。
 3. **M3 接入 LLM**：`prompts/*`、`llm/anthropic.ts`、打回重生，对样例课程跑真实生成，用 M1 的播放器看效果，迭代提示词直到样例验收通过。
 4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。
@@ -450,7 +457,7 @@ whiteboard-course/
 | 样例课程音频 | 无则用计时器模式 | 有 mp3/mp4 时放 `samples/` |
 | 术语表初始内容 | `aig c→AIGC`、`deep seek→DeepSeek`、`n lp→NLP`、`CTR/CTL→Ctrl`、`第22个指令→第二个指令` | `引导RPA` 疑为具体产品名，待课程方确认后加入 |
 | LLM 供应商与型号 | Anthropic，型号见 `.env.example` | 平台侧已选国内模型，是否 v1 就要 OpenAI-compatible 实现 |
-| 中文手写字体 | 小赖字体（Xiaolai，OFL） | 备选霞鹜文楷；字体文件较大，原型不做子集化 |
+| 中文手写字体 | 小赖字体（Xiaolai，OFL） | 备选霞鹜文楷；字体文件较大，原型不做子集化。**文件尚未放入 `public/fonts/`**（来源见其 README），目前回退到本机楷体，控制台会有字体解码警告 |
 | 页逻辑尺寸 | 1600 × 900 | 若后续嵌入平台侧栏布局，可能需要 4:3 |
 | 字幕默认显示 | 显示，可关 | |
 
