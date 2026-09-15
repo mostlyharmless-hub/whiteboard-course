@@ -271,6 +271,7 @@ Mermaid 校验在 Node 侧用 `mermaid` 的 `parse()`（需要 jsdom 环境）�
 - temperature 0.3 **只用于 OpenAI-compatible**；Anthropic 当前型号（Opus 5 / Sonnet 5）已移除 `temperature` 参数（发送即 400），Anthropic 路径不发该参数、用默认 adaptive thinking，默认型号 `claude-opus-5`。每次调用记录 token 用量到报告。
 - 提示词是文件不是代码：`prompts/outline.md`、`prompts/script.md`、`prompts/repair.md`，用 `{{placeholder}}` 注入。改提示词不需要改代码。文件格式：一行 `===== USER =====` 之前是 system，之后是 user 模板。大纲提示词同时产出课程标题（`meta.title`）。
 - `--record <dir>`（默认 `out/<name>.llm/`）把每次调用的提示词（`<tag>.prompt.md`）与响应（`<tag>.txt`）落盘，响应文件可直接作为 `--fixture` 目录复现；tag 形如 `outline`、`script:s1`、`repair:s1:1`（文件名中 `:` 换成 `-`）。
+- 健壮性：OpenAI-compatible 单次请求默认 5 分钟超时（`LLM_TIMEOUT_MS` 覆盖；qwen3.8-max 带推理时一节 2–3.5 分钟），超时 / 网络错误 / 429 / 5xx 重试一次；某一节的传输或接口错误只记为该节 error（报告可见），其余节继续生成。
 
 ### 6.8 提示词要点（写进 `prompts/script.md` 的核心要求）
 
