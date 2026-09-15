@@ -431,9 +431,10 @@ whiteboard-course/
 - `validate`：第 4 张卡自动分栏、第 4 栏自动翻页、`snippet` 不存在打回、Mermaid 节点超限打回、2 轮失败后丢弃并记 error。
 - `reducer`：任意 `t` 下 `state(t)` 与逐步应用结果一致；后退重算一致；活动标注随 `until` 消失。
 
-端到端（Playwright，计时器模式，不依赖 LLM 与音频）：
+端到端（Playwright，计时器模式，不依赖 LLM 与音频；`pnpm e2e`，不在 `pnpm check` 内）：
 
-- 加载 `tests/fixtures/minimal.script.json`（手写的 6 条动作脚本），分别定位到 4 个时间点截图，断言卡片数量、当前页码、字幕文本；检查控制台无 error。
+- 加载 `tests/fixtures/minimal.script.json`（手写的 6 条动作脚本），用 `?t=` 分别定位到 4 个时间点截图，断言卡片数量、当前页码、字幕文本、标注图元数；检查控制台无 error（字体文件缺失的 OTS 警告是 warning，不计）。
+- 样例课程的真实 LLM 响应录制在 `tests/fixtures/llm/aigc-career-qwen/`，`tests/generator/sample.test.ts` 用它离线复现整条流水线并断言下面"样例验收"的结构指标。
 
 样例验收（需要 LLM，手动执行）：
 
@@ -447,7 +448,7 @@ whiteboard-course/
 1. **M1 播放器骨架（不依赖 LLM）** ✅ 2026-09-15 完成（分支 `feat/m1-player-skeleton`，计划见 `docs/superpowers/plans/2026-09-15-m1-player-skeleton.md`）：`shared/schema`、`shared/reducer`、手写 `tests/fixtures/minimal.script.json`（覆盖全部 6 种动作）与 `demo.script.json`，播放器计时器模式跑通：画布、布局、Markdown/Mermaid 渲染、逐字揭示、高亮/画圈、翻页、字幕。`pnpm dev` 后打开 `/?script=tests/fixtures/demo.script.json` 评估观感。遗留：字体文件待放入 `public/fonts/`；Playwright 用例留到 M4。
 2. **M2 生成器离线链路** ✅ 2026-09-15 完成（计划见 `docs/superpowers/plans/2026-09-15-m2-m3-generator.md`）：`ingest / resolve / validate / assemble / report` + fixture 客户端，`tests/generator/` 59 个用例，`pnpm gen --fixture tests/fixtures/llm/mini` 可离线跑通。
 3. **M3 接入 LLM**：代码已完成（`prompts/*`、`llm/anthropic.ts`、`llm/openai-compatible.ts`、打回重生）；**待办**：用户填好 `.env` 后对样例课程跑真实生成，用播放器看效果，迭代 `prompts/script.md` 直到样例验收通过。
-4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。
+4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。已完成（2026-09-15）：`pnpm e2e`（`tests/e2e/player.spec.ts`，`@playwright/test` 锁定 1.61.1 以匹配本机缓存的 chromium 1228）、`docs/adr/001–003`、README、播放器 `?t=` 初始定位参数。**未完成**：音频模式实测（缺样例 mp3）、相机跟随细节打磨、手写字体文件。
 
 每个里程碑结束时更新本文件中与实现不符的描述。
 
