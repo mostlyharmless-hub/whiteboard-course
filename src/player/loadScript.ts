@@ -1,9 +1,10 @@
 import { parseScript, type ParseResult } from "../shared/schema";
 
-/** URL 参数：?script=<脚本路径>&audio=<音频路径>；无 audio 时进入计时器模式 */
-export function readParams(): { script: string; audio: string | null } {
+/** URL 参数：?script=<脚本路径>&audio=<音频路径>&t=<初始毫秒>；无 audio 时进入计时器模式 */
+export function readParams(): { script: string; audio: string | null; t: number } {
   const q = new URLSearchParams(location.search);
-  return { script: q.get("script") ?? "tests/fixtures/demo.script.json", audio: q.get("audio") };
+  const t = Number(q.get("t") ?? "0");
+  return { script: q.get("script") ?? "tests/fixtures/demo.script.json", audio: q.get("audio"), t: Number.isFinite(t) && t > 0 ? t : 0 };
 }
 
 export async function loadScript(url: string): Promise<ParseResult> {

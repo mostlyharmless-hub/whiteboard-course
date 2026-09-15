@@ -14,13 +14,15 @@ import { Subtitle } from "./ui/Subtitle";
 interface AppProps {
   script: BoardScript;
   audioUrl: string | null;
+  /** 初始定位（毫秒），来自 URL 参数 t；用于调试与端到端截图 */
+  initialT?: number;
 }
 
 const FOLLOW_PAUSE_MS = 8000;
 const PAGE_RECT = { x: 0, y: 0, w: PAGE.W, h: PAGE.H };
 
-export function App({ script, audioUrl }: AppProps) {
-  const clock = useClock({ audioUrl, duration: script.meta.duration_ms });
+export function App({ script, audioUrl, initialT = 0 }: AppProps) {
+  const clock = useClock({ audioUrl, duration: script.meta.duration_ms, initialT });
   const state = useBoardState(script.actions, clock.t);
 
   const [viewPage, setViewPage] = useState(0);

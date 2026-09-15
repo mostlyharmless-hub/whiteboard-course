@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check": "pnpm typecheck && pnpm test && pnpm lint",
-    "gen": "tsx src/generator/cli.ts"
+    "gen": "tsx src/generator/cli.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.61.1",
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^26.5.1",
     "@types/react": "^18.3.0",

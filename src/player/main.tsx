@@ -15,7 +15,7 @@ void loadScript(params.script).then((r) => {
     document.title = `${r.script.meta.title} · AI 板书课程`;
     root.render(
       <StrictMode>
-        <App script={r.script} audioUrl={params.audio} />
+        <App script={r.script} audioUrl={params.audio} initialT={params.t} />
       </StrictMode>,
     );
     return;

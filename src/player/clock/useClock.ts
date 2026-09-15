@@ -18,13 +18,14 @@ export interface Clock {
  * 时钟源二选一：有音频时以 HTMLAudioElement.currentTime 为准，
  * 否则用内部计时器（base + 经过时间 × 倍速）。对外只暴露一个 t。
  */
-export function useClock(opts: { audioUrl: string | null; duration: number }): Clock {
+export function useClock(opts: { audioUrl: string | null; duration: number; initialT?: number }): Clock {
   const { audioUrl, duration } = opts;
+  const initialT = Math.max(0, Math.min(duration, opts.initialT ?? 0));
   const mode: Clock["mode"] = audioUrl ? "audio" : "timer";
-  const [t, setTState] = useState(0);
+  const [t, setTState] = useState(initialT);
   const [playing, setPlaying] = useState(false);
   const [rate, setRateState] = useState(1);
-  const tRef = useRef(0);
+  const tRef = useRef(initialT);
   const rateRef = useRef(1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timer = useRef({ base: 0, startedAt: 0 });
@@ -38,6 +39,7 @@ export function useClock(opts: { audioUrl: string | null; duration: number }): C
     if (!audioUrl) return;
     const audio = new Audio(audioUrl);
     audio.preload = "auto";
+    if (initialT > 0) audio.currentTime = initialT / 1000;
     audioRef.current = audio;
     const onEnded = () => setPlaying(false);
     const onError = () => console.error(`音频加载失败：${audioUrl}`);
@@ -49,7 +51,7 @@ export function useClock(opts: { audioUrl: string | null; duration: number }): C
       audio.removeEventListener("error", onError);
       audioRef.current = null;
     };
-  }, [audioUrl]);
+  }, [audioUrl, initialT]);
 
   // 播放中每帧刷新 t
   useEffect(() => {
