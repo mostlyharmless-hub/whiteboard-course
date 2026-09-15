@@ -461,7 +461,7 @@ whiteboard-course/
 |---|---|---|
 | 样例课程音频 | 无则用计时器模式 | 有 mp3/mp4 时放 `samples/` |
 | 术语表初始内容 | `aig c→AIGC`、`deep seek→DeepSeek`、`n lp→NLP`、`CTR/CTL→Ctrl`、`第22个指令→第二个指令` | `引导RPA` 疑为具体产品名，待课程方确认后加入 |
-| LLM 供应商与型号 | Anthropic，型号见 `.env.example` | 平台侧已选国内模型，是否 v1 就要 OpenAI-compatible 实现 |
+| LLM 供应商与型号 | ✅ 阿里云私有端点（OpenAI 兼容模式）+ `qwen3.8-max` | 2026-09-15 确认；两种实现都已就绪，Anthropic 路径默认 `claude-opus-5`。qwen3.8-max 带推理，每节 2–3.5 分钟，样例一次通过验收 |
 | 中文手写字体 | 小赖字体（Xiaolai，OFL） | ✅ 已放入 `public/fonts/`：`Xiaolai-Regular.ttf`（v3.126，22 MB）+ Excalifont 7 个 unicode-range 子集（65 KB），来源见其 README。原型不做子集化；备选霞鹜文楷 |
 | 页逻辑尺寸 | 1600 × 900 | 若后续嵌入平台侧栏布局，可能需要 4:3 |
 | 字幕默认显示 | 显示，可关 | |
