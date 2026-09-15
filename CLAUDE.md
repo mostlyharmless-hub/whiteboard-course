@@ -307,7 +307,7 @@ Vite + React 18 单页应用，`pnpm dev` 启动后通过 `?script=out/aigc-care
 
 - Markdown 用 `markdown-it` 渲染，`katex` 插件处理公式，禁用 html。
 - Mermaid 用 `mermaid` ≥ 11，`look: "handDrawn"`，字体设为手写字体。渲染是异步的，卡片先占位再替换，不阻塞主时钟。
-- 字体：中文手写体（小赖字体 Xiaolai，或霞鹜文楷 LXGW WenKai，二选一，见第 13 节）+ 拉丁 Virgil / Excalifont；全部自托管在 `public/fonts/`，`font-display: swap`。字体文件放入前，`--font-hand` 回退栈落到本机楷体（Kaiti SC / STKaiti），见 `public/fonts/README.md`。字号：页首 `#` 30px，`##` 24px，正文 21px。
+- 字体：中文手写体（小赖字体 Xiaolai，或霞鹜文楷 LXGW WenKai，二选一，见第 13 节）+ 拉丁 Virgil / Excalifont；全部自托管在 `public/fonts/`，`font-display: swap`（Xiaolai 单文件；Excalifont 沿用 excalidraw 仓库的 7 个 unicode-range 子集）。`--font-hand` 回退栈落到本机楷体（Kaiti SC / STKaiti），见 `public/fonts/README.md`。字号：页首 `#` 30px，`##` 24px，正文 21px。
 - 手绘感：卡片边框、引用竖线套用 SVG 滤镜 `feTurbulence(fractalNoise, baseFrequency 0.035, numOctaves 2) + feDisplacementMap(scale 2.2)`；文字不套滤镜（会糊）。表格线暂不套滤镜——表格的边框与文字在同一元素上，滤镜会把文字一起糊掉，M1 保留直线。每张卡片按 `card_id` 哈希取 −0.4° 到 0.4° 的微小旋转。
 - Mermaid 用 `securityLevel: strict`（默认）、`htmlLabels: false`、字号 20px；Markdown 渲染关闭 html、图片退化为替代文字、链接只保留文字，因此 `dangerouslySetInnerHTML` 只接收已转义内容。
 - 配色：墨色 `#1e1e1e`，卡片底透明（白板本身是米白 `#fbfaf7` + 点阵），荧光笔 `rgba(255, 214, 0, .45)`，圈选 `#e03131`。
@@ -449,7 +449,7 @@ whiteboard-course/
 1. **M1 播放器骨架（不依赖 LLM）** ✅ 2026-09-15 完成（分支 `feat/m1-player-skeleton`，计划见 `docs/superpowers/plans/2026-09-15-m1-player-skeleton.md`）：`shared/schema`、`shared/reducer`、手写 `tests/fixtures/minimal.script.json`（覆盖全部 6 种动作）与 `demo.script.json`，播放器计时器模式跑通：画布、布局、Markdown/Mermaid 渲染、逐字揭示、高亮/画圈、翻页、字幕。`pnpm dev` 后打开 `/?script=tests/fixtures/demo.script.json` 评估观感。遗留：字体文件待放入 `public/fonts/`；Playwright 用例留到 M4。
 2. **M2 生成器离线链路** ✅ 2026-09-15 完成（计划见 `docs/superpowers/plans/2026-09-15-m2-m3-generator.md`）：`ingest / resolve / validate / assemble / report` + fixture 客户端，`tests/generator/` 59 个用例，`pnpm gen --fixture tests/fixtures/llm/mini` 可离线跑通。
 3. **M3 接入 LLM**：代码已完成（`prompts/*`、`llm/anthropic.ts`、`llm/openai-compatible.ts`、打回重生）；**待办**：用户填好 `.env` 后对样例课程跑真实生成，用播放器看效果，迭代 `prompts/script.md` 直到样例验收通过。
-4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。已完成（2026-09-15）：`pnpm e2e`（`tests/e2e/player.spec.ts`，`@playwright/test` 锁定 1.61.1 以匹配本机缓存的 chromium 1228）、`docs/adr/001–003`、README、播放器 `?t=` 初始定位参数。**未完成**：音频模式实测（缺样例 mp3）、相机跟随细节打磨、手写字体文件。
+4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。已完成（2026-09-15）：`pnpm e2e`（`tests/e2e/player.spec.ts`，`@playwright/test` 锁定 1.61.1 以匹配本机缓存的 chromium 1228；含静音 WAV 的音频模式用例）、`docs/adr/001–003`、README、播放器 `?t=` 初始定位参数、小视口聚焦当前栏、手写字体文件。**未完成**：用真实录播音频实测音频模式（缺样例 mp3）。
 
 每个里程碑结束时更新本文件中与实现不符的描述。
 
@@ -462,7 +462,7 @@ whiteboard-course/
 | 样例课程音频 | 无则用计时器模式 | 有 mp3/mp4 时放 `samples/` |
 | 术语表初始内容 | `aig c→AIGC`、`deep seek→DeepSeek`、`n lp→NLP`、`CTR/CTL→Ctrl`、`第22个指令→第二个指令` | `引导RPA` 疑为具体产品名，待课程方确认后加入 |
 | LLM 供应商与型号 | Anthropic，型号见 `.env.example` | 平台侧已选国内模型，是否 v1 就要 OpenAI-compatible 实现 |
-| 中文手写字体 | 小赖字体（Xiaolai，OFL） | 备选霞鹜文楷；字体文件较大，原型不做子集化。**文件尚未放入 `public/fonts/`**（来源见其 README），目前回退到本机楷体，控制台会有字体解码警告 |
+| 中文手写字体 | 小赖字体（Xiaolai，OFL） | ✅ 已放入 `public/fonts/`：`Xiaolai-Regular.ttf`（v3.126，22 MB）+ Excalifont 7 个 unicode-range 子集（65 KB），来源见其 README。原型不做子集化；备选霞鹜文楷 |
 | 页逻辑尺寸 | 1600 × 900 | 若后续嵌入平台侧栏布局，可能需要 4:3 |
 | 字幕默认显示 | 显示，可关 | |
 
