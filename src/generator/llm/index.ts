@@ -22,7 +22,8 @@ export function createLlmClient(env: NodeJS.ProcessEnv): LlmClient {
     const model = env.LLM_MODEL?.trim();
     if (!model) throw new Error(`OpenAI-compatible 需要 LLM_MODEL。${HELP}`);
     if (!baseUrl) throw new Error(`OpenAI-compatible 需要 LLM_BASE_URL（如 https://api.deepseek.com/v1）。${HELP}`);
-    return createOpenAiCompatibleClient({ apiKey, model, baseUrl });
+    const timeoutMs = Number(env.LLM_TIMEOUT_MS ?? "");
+    return createOpenAiCompatibleClient(Number.isFinite(timeoutMs) && timeoutMs > 0 ? { apiKey, model, baseUrl, timeoutMs } : { apiKey, model, baseUrl });
   }
   throw new Error(`未知的 LLM_PROVIDER「${provider}」，可选 anthropic | openai-compatible`);
 }

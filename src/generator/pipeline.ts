@@ -26,18 +26,25 @@ export async function generate(opts: GenerateOptions): Promise<GenerateResult> {
   for (const section of outline.sections) {
     // 提示词里的白板状态用全局卡片 id，所以每节开始前按已装配的动作重放一遍布局
     const layout = assemble(results).reduce(stepLayout, initialLayout);
-    const outcome = await generateSection(llm, {
-      section,
-      paragraphs: section.paragraph_ids.map((id) => paragraphById.get(id)!),
-      glossary,
-      layout,
-      prevAt,
-      usage,
-      sectionCount: outline.sections.length,
-      ...(onProgress ? { onProgress } : {}),
-    });
-    results.push({ section: outcome.section, actions: outcome.actions, warnings: outcome.warnings, errors: outcome.errors, dropped: outcome.dropped, rounds: outcome.rounds });
-    prevAt = Math.max(prevAt, outcome.lastAt);
+    try {
+      const outcome = await generateSection(llm, {
+        section,
+        paragraphs: section.paragraph_ids.map((id) => paragraphById.get(id)!),
+        glossary,
+        layout,
+        prevAt,
+        usage,
+        sectionCount: outline.sections.length,
+        ...(onProgress ? { onProgress } : {}),
+      });
+      results.push({ section: outcome.section, actions: outcome.actions, warnings: outcome.warnings, errors: outcome.errors, dropped: outcome.dropped, rounds: outcome.rounds });
+      prevAt = Math.max(prevAt, outcome.lastAt);
+    } catch (e) {
+      // 单节的传输 / 接口错误不拖垮整次生成：记为该节 error，其余节继续
+      const message = e instanceof Error ? e.message : String(e);
+      onProgress?.(`[${section.id}] 生成失败，跳过本节：${message}`);
+      results.push({ section, actions: [], warnings: [], errors: [`本节生成失败：${message}`], dropped: [], rounds: 0 });
+    }
   }
 
   const script: BoardScript = {
