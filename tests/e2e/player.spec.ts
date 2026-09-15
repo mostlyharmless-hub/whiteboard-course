@@ -53,6 +53,36 @@ test("t=5000 时卡片文字已全部揭示；t=3000 时只揭示了一部分", 
   await expect(page.locator(".pen")).toBeVisible();
 });
 
+test("多页脚本带 ?t= 打开时直接显示当前页", async ({ page }) => {
+  await page.goto("/?script=tests/fixtures/demo.script.json&t=125000");
+  await expect(page.locator(".page-nav")).toContainText("2 / 2");
+  await expect(page.locator(".page-title")).toHaveText("岗位信息智能采集");
+  await expect(page.locator(".card")).toHaveCount(3);
+  await expect(page.locator(".outline li.current")).toContainText("岗位信息采集");
+});
+
+test("音频模式：以音频时钟为准，播放后时间前进、拖动后同步", async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto(`/?script=${SCRIPT}&audio=tests/fixtures/silence-20s.wav`);
+  await expect(page.locator(".mode")).toHaveText("音频");
+  await page.locator(".btn.play").click();
+  await page.waitForTimeout(2500);
+  await page.locator(".btn.play").click();
+  const text = await page.locator(".time").textContent();
+  const seconds = Number(/0:(\d\d)/.exec(text ?? "")?.[1]);
+  expect(seconds).toBeGreaterThanOrEqual(2);
+  expect(seconds).toBeLessThanOrEqual(4);
+
+  // 拖到 75%（约 15 秒）：卡片、标注按该时刻直接显示
+  const track = page.locator(".track");
+  const box = (await track.boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.75, box.y + box.height / 2);
+  await expect(page.locator(".time")).toContainText("0:15 / 0:20");
+  await expect(page.locator(".card")).toHaveCount(2);
+  await expect(page.locator(".marks rect")).toHaveCount(1);
+  expect(errors.map((e) => e.text())).toEqual([]);
+});
+
 test("非法脚本在加载时报错并指出第几条动作", async ({ page }) => {
   await page.goto("/?script=samples/aigc-career.transcript.json");
   await expect(page.locator(".load-error")).toContainText("校验失败");

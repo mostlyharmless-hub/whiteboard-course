@@ -21,6 +21,8 @@ export interface PanZoomHandle {
   /** 复位：整页可见 */
   reset(): void;
   getScale(): number;
+  /** 把矩形完整放进视口所需的缩放比例（不改变相机） */
+  fitScale(r: WorldRect): number;
 }
 
 interface Props {
@@ -149,6 +151,9 @@ export const PanZoom = forwardRef<PanZoomHandle, Props>(function PanZoom({ child
     },
     getScale() {
       return cam.current.s;
+    },
+    fitScale(r) {
+      return fitCamera(r).s;
     },
   }));
 

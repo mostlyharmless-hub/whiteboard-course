@@ -5,7 +5,7 @@ import { useClock } from "./clock/useClock";
 import { useBoardState } from "./state/useBoardState";
 import { PanZoom, type PanZoomHandle } from "./canvas/PanZoom";
 import { Page } from "./canvas/Page";
-import { PAGE } from "./canvas/layout";
+import { PAGE, columnX } from "./canvas/layout";
 import { TopBar } from "./ui/TopBar";
 import { Sidebar } from "./ui/Sidebar";
 import { BottomBar } from "./ui/BottomBar";
@@ -20,12 +20,20 @@ interface AppProps {
 
 const FOLLOW_PAUSE_MS = 8000;
 const PAGE_RECT = { x: 0, y: 0, w: PAGE.W, h: PAGE.H };
+/** 整页适配后的比例低于此值时，文字太小，改为聚焦当前栏 */
+const MIN_READABLE_SCALE = 0.5;
+
+/** 一栏（含左右各 24 的留白）在 world 坐标系中的矩形 */
+function columnRect(column: number) {
+  return { x: columnX(Math.max(0, column)) - 24, y: 0, w: PAGE.COL_W + 48, h: PAGE.H };
+}
 
 export function App({ script, audioUrl, initialT = 0 }: AppProps) {
   const clock = useClock({ audioUrl, duration: script.meta.duration_ms, initialT });
   const state = useBoardState(script.actions, clock.t);
 
-  const [viewPage, setViewPage] = useState(0);
+  // 初始值取当前页：带 ?t= 打开时首屏可能已经在第 N 页
+  const [viewPage, setViewPage] = useState(Math.max(0, state.currentPage));
   const [follow, setFollow] = useState(true);
   const [scale, setScale] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -51,12 +59,22 @@ export function App({ script, audioUrl, initialT = 0 }: AppProps) {
   const page = state.pages[shownPage];
   const isCurrent = shownPage === state.currentPage;
 
-  // 视图页变化 → 整页可见
+  // 优先整页可见；页放不进视口（比例过小）时聚焦当前栏
+  const focusPage = useCallback((column: number, animate = true) => {
+    const pan = panRef.current;
+    if (!pan) return;
+    if (pan.fitScale(PAGE_RECT) >= MIN_READABLE_SCALE) pan.fitRect(PAGE_RECT, animate);
+    else pan.fitRect(columnRect(column), animate);
+  }, []);
+
+  // 视图页变化 → 适配该页
   useEffect(() => {
     if (pageCount === 0) return;
-    const raf = requestAnimationFrame(() => panRef.current?.fitRect(PAGE_RECT));
+    const raf = requestAnimationFrame(() => focusPage(isCurrent ? state.currentColumn : 0));
     return () => cancelAnimationFrame(raf);
-  }, [shownPage, pageCount]);
+    // 只在页变化时适配；栏变化由新卡片的 ensureVisible 处理
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownPage, pageCount, focusPage]);
 
   // 新卡片出现 → 相机确保可见（跟随开启且未被用户操作暂停）
   useEffect(() => {
@@ -71,12 +89,12 @@ export function App({ script, audioUrl, initialT = 0 }: AppProps) {
     return () => cancelAnimationFrame(raf);
   }, [script.actions, state.applied, follow]);
 
-  // 窗口尺寸变化 → 重新适配整页
+  // 窗口尺寸变化 → 重新适配
   useEffect(() => {
-    const onResize = () => panRef.current?.fitRect(PAGE_RECT, false);
+    const onResize = () => focusPage(state.currentColumn, false);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, []);
+  }, [focusPage, state.currentColumn]);
 
   // 键盘：空格播放/暂停，左右键 ±5 秒
   useEffect(() => {
@@ -103,7 +121,7 @@ export function App({ script, audioUrl, initialT = 0 }: AppProps) {
     setFollow(v);
     if (v) {
       pausedUntil.current = 0;
-      panRef.current?.fitRect(PAGE_RECT);
+      focusPage(state.currentColumn);
     }
   };
 

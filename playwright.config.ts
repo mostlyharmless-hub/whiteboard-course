@@ -8,6 +8,8 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:5174",
     viewport: { width: 1440, height: 900 },
+    // 音频模式用例需要在无用户手势时 play()
+    launchOptions: { args: ["--autoplay-policy=no-user-gesture-required"] },
   },
   webServer: {
     command: "pnpm dev --port 5174 --strictPort",
