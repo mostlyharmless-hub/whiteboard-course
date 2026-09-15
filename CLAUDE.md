@@ -256,7 +256,9 @@ until(highlight|circle) = p.end_time（不早于 at + 1500）
 - 可自动修正（修正后记录 warning）：第 4 张卡片到来时自动插入 `new_column`；第 4 栏到来时自动插入 `new_page`（标题沿用当前节标题）；`snippet` 不匹配时尝试去标点匹配；`until ≤ at` 时改为 `at + 1500`；Mermaid 语法解析失败时先尝试删除样式行。
 - 需打回 LLM 重生（附带错误清单，最多 2 轮）：卡片超预算、使用禁止语法、`target_card_id` 不存在、锚点段落不存在、Mermaid 仍解析失败。2 轮后仍失败则丢弃该动作并记录 error，生成继续。
 
-Mermaid 校验在 Node 侧用 `mermaid` 的 `parse()`（需要 jsdom 环境）；如引入 jsdom 成本过高，退化为正则检查 `flowchart|graph (LR|TD)` 开头且节点数 ≤ 8，并在文档中记录。
+Mermaid 校验在 Node 侧用 `mermaid` 的 `parse()`（需要 jsdom 环境）；如引入 jsdom 成本过高，退化为正则检查 `flowchart|graph (LR|TD)` 开头且节点数 ≤ 8，并在文档中记录。**当前实现：正则检查**（`validate.ts` 的 `checkMermaid`）——头部 `flowchart|graph + LR|TD|TB|RL|BT`、节点 ≤ 8、节点文字 ≤ 10 字、禁止 subgraph；`style / classDef / class / linkStyle / click` 行先自动删除（warning）。真正的语法错误由播放器渲染时报出。
+
+其他实现细节：打回错误的 `index` 指向 LLM 原始数组下标；两轮后丢弃出错动作并连带丢弃引用被丢卡片的标注；每节卡片上限 `ceil(秒 / 15) + 1`（超出打回）；标注跨页（自动翻页导致）降级为 warning 并丢弃；标题超长截断（warning）。
 
 ### 6.6 output
 
@@ -266,8 +268,9 @@ Mermaid 校验在 Node 侧用 `mermaid` 的 `parse()`（需要 jsdom 环境）�
 
 - 通过 `src/generator/llm/` 的 `LlmClient` 接口调用，默认实现 Anthropic（`@anthropic-ai/sdk`）；预留 OpenAI-compatible 实现（供国内模型接入），二者切换只改 `.env` 的 `LLM_PROVIDER / LLM_MODEL / LLM_BASE_URL / LLM_API_KEY`。
 - 只要 JSON：system prompt 声明"只输出 JSON，不要 Markdown 代码围栏"；解析前剥离可能的围栏；解析失败视为一次校验失败，走打回流程。
-- temperature 0.3；每次调用记录 token 用量到报告。
-- 提示词是文件不是代码：`prompts/outline.md`、`prompts/script.md`、`prompts/repair.md`，用 `{{placeholder}}` 注入。改提示词不需要改代码。
+- temperature 0.3 **只用于 OpenAI-compatible**；Anthropic 当前型号（Opus 5 / Sonnet 5）已移除 `temperature` 参数（发送即 400），Anthropic 路径不发该参数、用默认 adaptive thinking，默认型号 `claude-opus-5`。每次调用记录 token 用量到报告。
+- 提示词是文件不是代码：`prompts/outline.md`、`prompts/script.md`、`prompts/repair.md`，用 `{{placeholder}}` 注入。改提示词不需要改代码。文件格式：一行 `===== USER =====` 之前是 system，之后是 user 模板。大纲提示词同时产出课程标题（`meta.title`）。
+- `--record <dir>`（默认 `out/<name>.llm/`）把每次调用的提示词（`<tag>.prompt.md`）与响应（`<tag>.txt`）落盘，响应文件可直接作为 `--fixture` 目录复现；tag 形如 `outline`、`script:s1`、`repair:s1:1`（文件名中 `:` 换成 `-`）。
 
 ### 6.8 提示词要点（写进 `prompts/script.md` 的核心要求）
 
@@ -442,8 +445,8 @@ whiteboard-course/
 ## 12. 实施顺序
 
 1. **M1 播放器骨架（不依赖 LLM）** ✅ 2026-09-15 完成（分支 `feat/m1-player-skeleton`，计划见 `docs/superpowers/plans/2026-09-15-m1-player-skeleton.md`）：`shared/schema`、`shared/reducer`、手写 `tests/fixtures/minimal.script.json`（覆盖全部 6 种动作）与 `demo.script.json`，播放器计时器模式跑通：画布、布局、Markdown/Mermaid 渲染、逐字揭示、高亮/画圈、翻页、字幕。`pnpm dev` 后打开 `/?script=tests/fixtures/demo.script.json` 评估观感。遗留：字体文件待放入 `public/fonts/`；Playwright 用例留到 M4。
-2. **M2 生成器离线链路**：`ingest / resolve / validate / report` + 用 fixture 冒充 LLM 响应的 `script` 流程，单元测试全绿。
-3. **M3 接入 LLM**：`prompts/*`、`llm/anthropic.ts`、打回重生，对样例课程跑真实生成，用 M1 的播放器看效果，迭代提示词直到样例验收通过。
+2. **M2 生成器离线链路** ✅ 2026-09-15 完成（计划见 `docs/superpowers/plans/2026-09-15-m2-m3-generator.md`）：`ingest / resolve / validate / assemble / report` + fixture 客户端，`tests/generator/` 59 个用例，`pnpm gen --fixture tests/fixtures/llm/mini` 可离线跑通。
+3. **M3 接入 LLM**：代码已完成（`prompts/*`、`llm/anthropic.ts`、`llm/openai-compatible.ts`、打回重生）；**待办**：用户填好 `.env` 后对样例课程跑真实生成，用播放器看效果，迭代 `prompts/script.md` 直到样例验收通过。
 4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。
 
 每个里程碑结束时更新本文件中与实现不符的描述。
