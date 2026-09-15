@@ -33,6 +33,7 @@ export async function generate(opts: GenerateOptions): Promise<GenerateResult> {
       layout,
       prevAt,
       usage,
+      sectionCount: outline.sections.length,
       ...(onProgress ? { onProgress } : {}),
     });
     results.push({ section: outcome.section, actions: outcome.actions, warnings: outcome.warnings, errors: outcome.errors, dropped: outcome.dropped, rounds: outcome.rounds });

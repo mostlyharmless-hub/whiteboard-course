@@ -1,0 +1,28 @@
+[
+  {
+    "type": "new_page",
+    "title": "行业背景调研提示词",
+    "anchor": {
+      "paragraph_id": "1781166084499500000",
+      "quote": "第三部分行业背景调研构建提示词"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "# 行业背景调研提示词\n\n**三步构建**\n1. 基础信息：市场需求与趋势\n2. 数据细化：薪资与福利政策\n3. 政策关联：劳动法核心规定",
+    "anchor": {
+      "paragraph_id": "1781166084499500000",
+      "quote": "分三步操作"
+    }
+  },
+  {
+    "type": "circle",
+    "target_card_id": "c1",
+    "snippet": "三步构建",
+    "anchor": {
+      "paragraph_id": "1781166084499500000",
+      "quote": "分三步操作"
+    }
+  }
+]

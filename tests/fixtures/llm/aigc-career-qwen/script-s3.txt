@@ -1,0 +1,46 @@
+[
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "1781165871579500000",
+      "quote": "在弹出的配置界面中"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 捕获职位描述元素\n\n1. 第三个指令：捕获岗位描述\n2. 输出：职位描述元素\n3. 第四、第五个指令：复用同流程\n4. 获取薪资待遇 / 工作地点",
+    "anchor": {
+      "paragraph_id": "1781165871579500000",
+      "quote": "按住ctl点击岗位描述"
+    }
+  },
+  {
+    "type": "circle",
+    "target_card_id": "c1",
+    "snippet": "职位描述元素",
+    "anchor": {
+      "paragraph_id": "1781165871579500000",
+      "quote": "命名为职位描述element"
+    }
+  },
+  {
+    "type": "mermaid",
+    "card_id": "c2",
+    "title": "复用获取流程",
+    "code": "flowchart LR\n  A[捕获职位描述元素] --> B[复用同一流程]\n  B --> C[薪资待遇]\n  B --> D[工作地点]",
+    "anchor": {
+      "paragraph_id": "1781165871579500000",
+      "quote": "第四第五个指令是获取薪资待遇"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "复用同流程",
+    "anchor": {
+      "paragraph_id": "1781165871579500000",
+      "quote": "操作流程跟第三个指令一样"
+    }
+  }
+]

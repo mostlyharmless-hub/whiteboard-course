@@ -1,0 +1,81 @@
+[
+  {
+    "type": "new_page",
+    "title": "写入Excel并运行采集",
+    "anchor": {
+      "paragraph_id": "1781165918999500000",
+      "quote": "接下来从搜索栏中获取"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "# 写入Excel运行采集\n\n**循环外**\n- 新建并保存 Excel\n\n**循环内**\n- 获取：岗位描述、薪资福利、工作地点\n- 写入：Excel 对应字段",
+    "anchor": {
+      "paragraph_id": "1781165918999500000",
+      "quote": "这个指令不需要循环重复"
+    }
+  },
+  {
+    "type": "mermaid",
+    "card_id": "c2",
+    "title": "循环内外安排",
+    "code": "flowchart TD\n  A[新建Excel] --> B[进入循环]\n  B --> C[获取字段]\n  C --> D[写入Excel]\n  D --> B\n  B --> E[采集完成]",
+    "anchor": {
+      "paragraph_id": "1781165918999500000",
+      "quote": "需要循环重复执行"
+    }
+  },
+  {
+    "type": "circle",
+    "target_card_id": "c1",
+    "snippet": "循环内",
+    "anchor": {
+      "paragraph_id": "1781165918999500000",
+      "quote": "需要放入循环体内"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 写入岗位描述\n1. 选定工作表\n2. 定位最新一行\n3. 写入第一列\n4. 内容为岗位描述文本",
+    "anchor": {
+      "paragraph_id": "1781165949459500000",
+      "quote": "将岗位描述放入excel第一列"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "1781165949459500000",
+      "quote": "同样的薪资福利、工作地点"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c4",
+    "content": "## 字段写入同理\n- 薪资福利：写入对应列\n- 工作地点：写入对应列\n- 指令搭建完成",
+    "anchor": {
+      "paragraph_id": "1781165949459500000",
+      "quote": "操作流程一样不重复操作了"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c5",
+    "content": "## 运行与结果\n- 运行流程机器人\n- 数据写入 Excel\n- **数据采集任务完成**\n- 下一步：提炼岗位核心能力",
+    "anchor": {
+      "paragraph_id": "1781165949459500000",
+      "quote": "流程机器人开始抓取数据"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c5",
+    "snippet": "数据采集任务完成",
+    "anchor": {
+      "paragraph_id": "1781165949459500000",
+      "quote": "数据已采集完成"
+    }
+  }
+]

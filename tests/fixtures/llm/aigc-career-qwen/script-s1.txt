@@ -1,0 +1,54 @@
+[
+  {
+    "type": "new_page",
+    "title": "课程总览",
+    "anchor": {
+      "paragraph_id": "1781165726319500000",
+      "quote": "大家好，本节课程"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "# 课程总览\n**目标**：借助 AIGC 制定职业规划\n**三大环节**\n1. 岗位信息智能采集\n2. 核心能力 AI 分析\n3. 行业背景挖掘\n**工具**：引导 RPA · DeepSeek",
+    "anchor": {
+      "paragraph_id": "1781165726319500000",
+      "quote": "我们将聚焦三大核心环节"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "1781165749019500000",
+      "quote": "本职业规划体系采用三级分析框架"
+    }
+  },
+  {
+    "type": "mermaid",
+    "card_id": "c2",
+    "title": "三级分析框架",
+    "code": "flowchart LR\n  A[岗位信息采集] --> B[核心能力分析] --> C[行业背景整合]",
+    "anchor": {
+      "paragraph_id": "1781165749019500000",
+      "quote": "本职业规划体系采用三级分析框架"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 数据 · 能力 · 环境\n- 数据：岗位信息采集 → 原始数据\n- 能力：NLP 将职责转为技能模型\n- 环境：政策法规 + 市场趋势\n形成闭环分析链，AIGC 全流程智能化",
+    "anchor": {
+      "paragraph_id": "1781165749019500000",
+      "quote": "首先通过岗位信息采集"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c3",
+    "snippet": "闭环分析链",
+    "anchor": {
+      "paragraph_id": "1781165749019500000",
+      "quote": "形成数据、能力、环境的闭环分析链"
+    }
+  }
+]

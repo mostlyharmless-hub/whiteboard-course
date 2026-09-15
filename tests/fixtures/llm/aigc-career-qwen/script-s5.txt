@@ -1,0 +1,46 @@
+[
+  {
+    "type": "new_page",
+    "title": "DeepSeek分析核心能力",
+    "anchor": {
+      "paragraph_id": "1781166008249500000",
+      "quote": "下面演示第二部分"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "# DeepSeek分析\n\n**操作步骤**\n1. 上传岗位描述附件\n2. 输入指令：分析核心能力\n3. 追问：哪项能力影响薪资",
+    "anchor": {
+      "paragraph_id": "1781166008249500000",
+      "quote": "点击附件图标上传岗位描述附件"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 结论金句\n\n- 通用核心能力：办公软件操作、文档流程、数据处理、沟通协调\n- **薪资溢价核心：沟通能力 + 数据处理能力**",
+    "anchor": {
+      "paragraph_id": "1781166008249500000",
+      "quote": "沟通能力与数据处理能力是薪资溢价"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 延伸分析\n- 地区薪资差异\n- 公司规模与能力要求",
+    "anchor": {
+      "paragraph_id": "1781166070139500000",
+      "quote": "继续输入分析地区薪资差异或公司规模"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c2",
+    "snippet": "沟通能力 + 数据处理能力",
+    "anchor": {
+      "paragraph_id": "1781166008249500000",
+      "quote": "沟通能力与数据处理能力是薪资溢价"
+    }
+  }
+]
