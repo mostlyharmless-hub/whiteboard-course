@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check": "pnpm typecheck && pnpm test && pnpm lint",
     "gen": "tsx src/generator/cli.ts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "tts": "tsx src/tts/cli.ts",
+    "render": "tsx src/render/cli.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

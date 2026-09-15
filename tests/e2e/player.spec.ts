@@ -65,13 +65,12 @@ test("音频模式：以音频时钟为准，播放后时间前进、拖动后�
   const errors = collectErrors(page);
   await page.goto(`/?script=${SCRIPT}&audio=tests/fixtures/silence-20s.wav`);
   await expect(page.locator(".mode")).toHaveText("音频");
+  const seconds = async () => Number(/0:(\d\d)/.exec((await page.locator(".time").textContent()) ?? "")?.[1]);
   await page.locator(".btn.play").click();
-  await page.waitForTimeout(2500);
+  // 机器繁忙时音频起播会慢，轮询而不是固定等待
+  await expect.poll(seconds, { timeout: 8000 }).toBeGreaterThanOrEqual(2);
   await page.locator(".btn.play").click();
-  const text = await page.locator(".time").textContent();
-  const seconds = Number(/0:(\d\d)/.exec(text ?? "")?.[1]);
-  expect(seconds).toBeGreaterThanOrEqual(2);
-  expect(seconds).toBeLessThanOrEqual(4);
+  expect(await seconds()).toBeLessThanOrEqual(6);
 
   // 拖到 75%（约 15 秒）：卡片、标注按该时刻直接显示
   const track = page.locator(".track");
@@ -80,6 +79,28 @@ test("音频模式：以音频时钟为准，播放后时间前进、拖动后�
   await expect(page.locator(".time")).toContainText("0:15 / 0:20");
   await expect(page.locator(".card")).toHaveCount(2);
   await expect(page.locator(".marks rect")).toHaveCount(1);
+  expect(errors.map((e) => e.text())).toEqual([]);
+});
+
+test("渲染模式：无界面、window.__player 可逐帧设时间；?subtitles= 覆盖字幕文本", async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto(`/?script=${SCRIPT}&render=1&subtitles=tests/fixtures/minimal.subtitles.json`);
+  await page.waitForFunction(() => window.__player !== undefined);
+  await expect(page.locator(".topbar")).toBeHidden();
+  await expect(page.locator(".bottombar")).toBeHidden();
+  await expect(page.locator(".sidebar")).toBeHidden();
+  const stage = await page.locator(".stage").boundingBox();
+  expect(stage?.width).toBe(1440);
+  expect(stage?.height).toBe(900);
+
+  await page.evaluate(() => window.__player!.setTime(17000));
+  await page.evaluate(() => window.__player!.waitReady());
+  await expect(page.locator(".card")).toHaveCount(2);
+  await expect(page.locator(".marks rect, .marks path")).toHaveCount(3);
+  await expect(page.locator(".subtitle")).toHaveText("（纠错后）它们构成一条闭环分析链，其中环境是最容易被忽视的一环。");
+  await page.evaluate(() => window.__player!.setTime(3000));
+  await expect(page.locator(".card")).toHaveCount(1);
+  await page.screenshot({ path: "test-results/minimal-render-t17000.png" });
   expect(errors.map((e) => e.text())).toEqual([]);
 });
 

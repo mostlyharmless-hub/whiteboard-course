@@ -10,12 +10,15 @@ import { TopBar } from "./ui/TopBar";
 import { Sidebar } from "./ui/Sidebar";
 import { BottomBar } from "./ui/BottomBar";
 import { Subtitle } from "./ui/Subtitle";
+import { afterPaint, installPlayerHooks, waitAssetsReady } from "./renderHooks";
 
 interface AppProps {
   script: BoardScript;
   audioUrl: string | null;
   /** 初始定位（毫秒），来自 URL 参数 t；用于调试与端到端截图 */
   initialT?: number;
+  /** 渲染模式：隐藏界面、相机瞬移、暴露 window.__player 供逐帧截图 */
+  render?: boolean;
 }
 
 const FOLLOW_PAUSE_MS = 8000;
@@ -28,7 +31,7 @@ function columnRect(column: number) {
   return { x: columnX(Math.max(0, column)) - 24, y: 0, w: PAGE.COL_W + 48, h: PAGE.H };
 }
 
-export function App({ script, audioUrl, initialT = 0 }: AppProps) {
+export function App({ script, audioUrl, initialT = 0, render = false }: AppProps) {
   const clock = useClock({ audioUrl, duration: script.meta.duration_ms, initialT });
   const state = useBoardState(script.actions, clock.t);
 
@@ -117,6 +120,20 @@ export function App({ script, audioUrl, initialT = 0 }: AppProps) {
     pausedUntil.current = Date.now() + FOLLOW_PAUSE_MS;
   }, []);
 
+  // 渲染模式：把"设置时间 + 等待就绪"暴露给外部（Playwright 逐帧截图）
+  const seek = clock.seek;
+  useEffect(() => {
+    if (!render) return;
+    installPlayerHooks({
+      duration: script.meta.duration_ms,
+      setTime: async (ms) => {
+        seek(ms);
+        await afterPaint();
+      },
+      waitReady: () => waitAssetsReady(),
+    });
+  }, [render, seek, script.meta.duration_ms]);
+
   const onFollow = (v: boolean) => {
     setFollow(v);
     if (v) {
@@ -129,7 +146,7 @@ export function App({ script, audioUrl, initialT = 0 }: AppProps) {
   const paragraph = paragraphAt(script.paragraphs, clock.t);
 
   return (
-    <div className="app">
+    <div className={`app${render ? " render" : ""}`}>
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
         <filter id="wobble" x="-15%" y="-15%" width="130%" height="130%">
           <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="noise" />
@@ -152,7 +169,7 @@ export function App({ script, audioUrl, initialT = 0 }: AppProps) {
       />
       <Sidebar sections={script.sections} currentId={section?.id ?? null} open={sidebarOpen} onJump={clock.seek} />
       <main className="stage">
-        <PanZoom ref={panRef} onUserInteract={onUserInteract} onScaleChange={setScale}>
+        <PanZoom ref={panRef} onUserInteract={onUserInteract} onScaleChange={setScale} instant={render}>
           {page && (
             <Page
               key={shownPage}

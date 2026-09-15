@@ -1,0 +1,8 @@
+{
+  "data": {
+    "paragraphs": [
+      { "paragraph_id": "p1", "text": "（纠错后）大家好，今天我们讲三个要点。第一是数据，第二是能力，第三是环境。", "begin_time": 0, "end_time": 10000 },
+      { "paragraph_id": "p2", "text": "（纠错后）它们构成一条闭环分析链，其中环境是最容易被忽视的一环。", "begin_time": 10000, "end_time": 20000 }
+    ]
+  }
+}

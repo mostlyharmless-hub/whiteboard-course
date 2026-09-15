@@ -30,6 +30,8 @@ interface Props {
   /** 用户滚轮 / 拖拽时触发（用于暂停相机跟随） */
   onUserInteract?: () => void;
   onScaleChange?: (scale: number) => void;
+  /** 渲染模式：所有相机移动瞬间完成，不做 300 ms 动画（逐帧截图时不能依赖墙钟） */
+  instant?: boolean;
 }
 
 interface Camera {
@@ -48,7 +50,7 @@ const PAGE_RECT: WorldRect = { x: 0, y: 0, w: PAGE.W, h: PAGE.H };
  * 自写平移 / 缩放容器：transform 作用于 world 层，相机状态存 ref、直接写样式，不经 React 状态。
  * screen = world × s + (x, y)
  */
-export const PanZoom = forwardRef<PanZoomHandle, Props>(function PanZoom({ children, onUserInteract, onScaleChange }, ref) {
+export const PanZoom = forwardRef<PanZoomHandle, Props>(function PanZoom({ children, onUserInteract, onScaleChange, instant = false }, ref) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const cam = useRef<Camera>({ x: 0, y: 0, s: 1 });
@@ -58,8 +60,10 @@ export const PanZoom = forwardRef<PanZoomHandle, Props>(function PanZoom({ child
   const lastReportedPct = useRef(-1);
   const interactRef = useRef(onUserInteract);
   const scaleChangeRef = useRef(onScaleChange);
+  const instantRef = useRef(instant);
   interactRef.current = onUserInteract;
   scaleChangeRef.current = onScaleChange;
+  instantRef.current = instant;
 
   const applyCamera = (c: Camera) => {
     cam.current = c;
@@ -80,7 +84,7 @@ export const PanZoom = forwardRef<PanZoomHandle, Props>(function PanZoom({ child
 
   const animateTo = (target: Camera, animate: boolean) => {
     stopAnim();
-    if (!animate) {
+    if (!animate || instantRef.current) {
       applyCamera(target);
       return;
     }

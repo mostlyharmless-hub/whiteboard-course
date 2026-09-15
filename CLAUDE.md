@@ -20,9 +20,11 @@ v1 范围内：
 - 播放器（浏览器）：无限画布（平移/缩放）、页 → 栏 → 卡片布局、Markdown / Mermaid / KaTeX 渲染、手写风格、逐字揭示动画、高亮与画圈、相机自动跟随、页码导航、大纲侧栏、音频同步与拖动进度、无音频时的计时器模式、底部字幕。
 - 样例课程端到端跑通，并有自动化测试覆盖生成器核心逻辑。
 
+v1 之外、2026-09-15 按用户要求追加（ADR 004）：`pnpm tts` 用阿里云 Qwen3-TTS 逐段配音并按**原时间轴**拼成 mp3（时间轴仍完全来自原字幕）；`pnpm render` 把播放器逐帧渲染为 mp4 视频课；播放器 `?render=1`（无界面渲染模式）与 `?subtitles=`（用纠错后的讲解稿覆盖字幕）。
+
 v1 明确不做：
 
-- TTS 配音（时间轴完全来自原字幕的 `begin_time / end_time`）。
+- TTS 配音的时间轴驱动（配音只填充原时间轴，不改变 `begin_time / end_time`）。
 - 学员互动：课堂提问、语音打断、聊天。
 - AI 生图、生成动画、参考资料阅读。
 - 用户在板书上批注、编辑、多人协作、导出图片/PDF。
@@ -374,7 +376,10 @@ whiteboard-course/
 │   │   ├── validate.ts            # 校验 + autofix + 打回
 │   │   ├── report.ts
 │   │   └── llm/                   # LlmClient 接口、anthropic.ts、openai-compatible.ts、fixture.ts
+│   ├── tts/                       # pnpm tts：术语纠错 → DashScope Qwen3-TTS → 按原时间轴 ffmpeg 拼接（ADR 004）
+│   ├── render/                    # pnpm render：Playwright 逐帧截图 → ffmpeg 合成 mp4（ADR 004）
 │   └── player/
+│       ├── renderHooks.ts         # ?render=1 时暴露 window.__player（setTime / waitReady）
 │       ├── main.tsx               # 读 URL 参数、加载校验、挂载；失败时列出第几条动作
 │       ├── App.tsx                # 时钟 + 状态 + 相机跟随 + UI 组合
 │       ├── loadScript.ts
@@ -450,6 +455,8 @@ whiteboard-course/
 2. **M2 生成器离线链路** ✅ 2026-09-15 完成（计划见 `docs/superpowers/plans/2026-09-15-m2-m3-generator.md`）：`ingest / resolve / validate / assemble / report` + fixture 客户端，`tests/generator/` 59 个用例，`pnpm gen --fixture tests/fixtures/llm/mini` 可离线跑通。
 3. **M3 接入 LLM** ✅ 2026-09-15 完成：阿里云 `qwen3.8-max`（OpenAI 兼容模式）对样例课程两次真实生成均 error 0、warning 0、7 节全部首轮通过，验收指标全部满足。提示词迭代记录：v1 几乎只用左栏（每页 `1+2 / 3+2 / 3+2 / 3 / 1 / 1`）、标注 9 次；加入"横向铺开"与"标注按节数分摊"后 v2 为 `1+1+1 / 1+1+1 / 1+2+2 / 1+1+1 / 1+1 / 1`、标注 5 次、Mermaid 6 张。随后加了"流程图只在有分支/循环/依赖时才画"一条（尚未用真实生成验证）。v1 响应作为离线回归 fixture（`tests/fixtures/llm/aigc-career-qwen/`）。
 4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。已完成（2026-09-15）：`pnpm e2e`（`tests/e2e/player.spec.ts`，`@playwright/test` 锁定 1.61.1 以匹配本机缓存的 chromium 1228；含静音 WAV 的音频模式用例）、`docs/adr/001–003`、README、播放器 `?t=` 初始定位参数、小视口聚焦当前栏、手写字体文件。**未完成**：用真实录播音频实测音频模式（缺样例 mp3）。
+
+5. **M5 配音与视频导出**（v1 之外，用户追加，ADR 004）✅ 2026-09-15：`pnpm tts`（Qwen3-TTS Ethan，样例 11 段全部放进原时间窗、无需加速，`samples/aigc-career.tts.mp3` 420.5 s）、`pnpm render`（1920×1080 @ 25 fps，约 1× 实时）、播放器 `?render=1` / `?subtitles=`，e2e 覆盖渲染模式。成片 `out/aigc-career.mp4`（v2 脚本 + 配音）。
 
 每个里程碑结束时更新本文件中与实现不符的描述。
 

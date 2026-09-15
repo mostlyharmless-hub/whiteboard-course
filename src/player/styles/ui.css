@@ -263,6 +263,26 @@ body {
   pointer-events: none;
 }
 
+/* 渲染模式：只保留白板与字幕，供逐帧截图合成视频 */
+.app.render {
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+}
+.app.render .topbar,
+.app.render .bottombar,
+.app.render .sidebar {
+  display: none;
+}
+.app.render .stage {
+  grid-area: 1 / 1;
+}
+.app.render .subtitle {
+  bottom: 36px;
+  font-size: 26px;
+  padding: 10px 22px;
+  max-width: 80%;
+}
+
 .load-error {
   margin: 24px;
   padding: 16px;
