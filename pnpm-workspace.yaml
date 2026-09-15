@@ -1,0 +1,3 @@
+# 单包项目；这里只用于声明允许运行安装脚本的依赖（tsx → esbuild 需要安装平台二进制）
+allowBuilds:
+  esbuild: true

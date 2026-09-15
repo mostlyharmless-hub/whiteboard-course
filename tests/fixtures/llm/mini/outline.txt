@@ -1,0 +1,3 @@
+```json
+{"title":"三个要点","sections":[{"id":"s1","title":"三个要点","intent":"结构总览","paragraph_ids":["p1"]},{"id":"s2","title":"闭环分析链","intent":"流程图与结论","paragraph_ids":["p2"]}]}
+```

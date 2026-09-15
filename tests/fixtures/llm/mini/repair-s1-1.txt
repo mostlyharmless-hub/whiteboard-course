@@ -1,0 +1,5 @@
+[
+  {"type":"new_page","title":"三个要点","anchor":{"paragraph_id":"p1","quote":"大家好，今天我们"}},
+  {"type":"board","card_id":"c1","content":"# 三个要点\n\n1. **数据**\n2. **能力**\n3. **环境**","anchor":{"paragraph_id":"p1","quote":"第一是数据"}},
+  {"type":"board","card_id":"c2","content":"## 说明\n- 数据：原始材料\n- 能力：量化模型\n- 环境：决策支撑","anchor":{"paragraph_id":"p1","quote":"第三是环境"}}
+]

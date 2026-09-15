@@ -1,0 +1,15 @@
+{
+  "rules": [
+    { "from": "aig c", "to": "AIGC" },
+    { "from": "deep seek", "to": "DeepSeek" },
+    { "from": "Deep seek", "to": "DeepSeek" },
+    { "from": "n lp", "to": "NLP" },
+    { "from": "CTR", "to": "Ctrl", "note": "快捷键语境" },
+    { "from": "CTL", "to": "Ctrl", "note": "快捷键语境" },
+    { "from": "ctl", "to": "Ctrl", "note": "快捷键语境" },
+    { "from": "第22个指令", "to": "第二个指令" },
+    { "from": "引导RPA", "to": "引导 RPA", "note": "疑为 RPA 产品名，待课程方确认" },
+    { "from": "boss直聘", "to": "BOSS 直聘" },
+    { "from": "职位描述element", "to": "职位描述元素" }
+  ]
+}

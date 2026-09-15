@@ -1,0 +1,6 @@
+[
+  {"type":"new_column","anchor":{"paragraph_id":"p2","quote":"它们构成一条"}},
+  {"type":"mermaid","card_id":"c1","title":"闭环分析链","code":"flowchart LR\n  A[数据] --> B[能力] --> C[环境] --> A","anchor":{"paragraph_id":"p2","quote":"它们构成一条闭环分析链"}},
+  {"type":"board","card_id":"c2","content":"## 结论\n\n**环境**最容易被忽视","anchor":{"paragraph_id":"p2","quote":"其中环境是最容易"}},
+  {"type":"circle","target_card_id":"c2","snippet":"环境","anchor":{"paragraph_id":"p2","quote":"被忽视的一环"}}
+]
