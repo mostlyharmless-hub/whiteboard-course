@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { paragraphAt, sectionAt } from "../../src/shared/lookup";
+import { paragraphAt, sectionAt, sentenceAt } from "../../src/shared/lookup";
 
 const paragraphs = [
   { paragraph_id: "p1", text: "a", begin_time: 1000, end_time: 2000 },
@@ -19,6 +19,24 @@ describe("paragraphAt", () => {
     expect(paragraphAt(paragraphs, 2999)?.paragraph_id).toBe("p2");
     expect(paragraphAt(paragraphs, 3000)).toBeNull();
     expect(paragraphAt([], 3000)).toBeNull();
+  });
+});
+
+describe("sentenceAt", () => {
+  // 20 字，1000 → 3000 ms，每字 100 ms
+  const p = { paragraph_id: "p", text: "第一句话在这里。第二句更长一些！第三句？", begin_time: 1000, end_time: 3000 };
+  it("按字符位置线性插值取当前句", () => {
+    expect(sentenceAt(p, 1000)).toBe("第一句话在这里。");
+    expect(sentenceAt(p, 1700)).toBe("第一句话在这里。");
+    expect(sentenceAt(p, 1800)).toBe("第二句更长一些！");
+    expect(sentenceAt(p, 2950)).toBe("第三句？");
+  });
+  it("段外返回 null", () => {
+    expect(sentenceAt(p, 999)).toBeNull();
+    expect(sentenceAt(p, 3000)).toBeNull();
+  });
+  it("无句末标点时返回整段", () => {
+    expect(sentenceAt({ ...p, text: "没有标点的一段" }, 2000)).toBe("没有标点的一段");
   });
 });
 

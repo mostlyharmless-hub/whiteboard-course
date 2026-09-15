@@ -1,0 +1,16 @@
+/* 手写字体：自托管文件缺失时按回退栈退到本机楷体（见 public/fonts/README.md） */
+@font-face {
+  font-family: "Xiaolai";
+  src: url("/fonts/Xiaolai.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Excalifont";
+  src: url("/fonts/Excalifont-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  --font-hand: "Excalifont", "Xiaolai", "LXGW WenKai", "Kaiti SC", "STKaiti", "KaiTi", "Yuanti SC", cursive;
+  --font-ui: -apple-system, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+}

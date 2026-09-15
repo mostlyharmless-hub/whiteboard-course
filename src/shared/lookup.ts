@@ -19,6 +19,24 @@ export function paragraphAt(paragraphs: Paragraph[], t: number): Paragraph | nul
   return p && t < p.end_time ? p : null;
 }
 
+const SENTENCE_END = /[。！？；!?;]/;
+
+/**
+ * 段落内时刻 t 正在说的那一句：按句末标点切句，段内时间按字符位置线性插值
+ * （与生成器换算锚点时间的规则一致）。t 不在段内返回 null。
+ */
+export function sentenceAt(paragraph: Paragraph, t: number): string | null {
+  const { text, begin_time, end_time } = paragraph;
+  if (t < begin_time || t >= end_time || text.length === 0) return null;
+  const ratio = (t - begin_time) / (end_time - begin_time);
+  const pos = Math.min(text.length - 1, Math.floor(ratio * text.length));
+  let start = pos;
+  while (start > 0 && !SENTENCE_END.test(text[start - 1]!)) start--;
+  let end = pos;
+  while (end < text.length && !SENTENCE_END.test(text[end]!)) end++;
+  return text.slice(start, Math.min(text.length, end + 1)).trim() || null;
+}
+
 /** 最后一个 begin_ms <= t 的小节；早于首节返回 null */
 export function sectionAt(sections: Section[], t: number): Section | null {
   const i = lastIndexAtOrBefore(sections, t, (s) => s.begin_ms);
