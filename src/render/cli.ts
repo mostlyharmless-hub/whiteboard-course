@@ -92,7 +92,10 @@ async function portAlive(port: number): Promise<boolean> {
 /** 端口无服务时起一个 vite，等它可访问 */
 async function ensureServer(port: number): Promise<ChildProcess | null> {
   if (await portAlive(port)) return null;
-  const vite = spawn(join("node_modules", ".bin", "vite"), ["--port", String(port), "--strictPort"], { stdio: "ignore" });
+  // 直接用 node 执行 vite 的入口，而不是 node_modules/.bin/vite：
+  // 后者在 Windows 上是无扩展名的 sh 脚本，CreateProcess 只会补 .exe，spawn 必然 ENOENT；
+  // 改用 .CMD 则要 shell:true，kill() 杀掉的是 cmd.exe 而不是 vite 本身。
+  const vite = spawn(process.execPath, [join("node_modules", "vite", "bin", "vite.js"), "--port", String(port), "--strictPort"], { stdio: "ignore" });
   for (let i = 0; i < 60; i++) {
     await new Promise((r) => setTimeout(r, 500));
     if (await portAlive(port)) return vite;
