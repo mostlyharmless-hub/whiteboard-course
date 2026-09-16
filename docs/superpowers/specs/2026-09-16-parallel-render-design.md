@@ -34,8 +34,8 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
             [--port 5175] [--jobs <N|auto>] [--frames-dir <dir>] [--keep-frames]
 ```
 
-- `--jobs`：并行 worker 数，默认 `auto`（实测定值，预期 8）。`--jobs 1` 走现有串行代码路径。
-- `--frames-dir`：临时帧目录，默认 `out/<out 文件名去扩展名>.frames/`；渲染成功后删除。
+- `--jobs`：并行 worker 数，默认 `auto` = `clamp(floor(os.availableParallelism() / 4), 1, MAX_AUTO_JOBS)`，`MAX_AUTO_JOBS` 初值 8，实施后按吞吐实测调整（常量，写在 `segments.ts`）。`--jobs 1` 在主进程内直接调用 `renderRange`，不起子进程。
+- `--frames-dir`：临时帧目录，默认与 `--out` 同目录、名为 `<out 文件名去扩展名>.frames/`；**开始渲染前清空**（image2 会连续读取编号，残留的旧帧会被编进视频）；渲染成功后删除。
 - `--keep-frames`：保留帧目录（排查画面问题、重复编码时用）。
 
 其余参数语义不变。
@@ -46,10 +46,10 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
 |---|---|
 | `src/render/segments.ts` | `planSegments(totalFrames, jobs): {start, end}[]`（`end` 不含）。纯函数：帧数均分，余数分给前几段；`jobs > totalFrames` 时段数收敛到 `totalFrames`；`jobs <= 1` 返回单段 |
 | `src/render/frames.ts` | `renderRange(opts): Promise<void>`：开 chromium → `goto` → `waitReady` → 对 `[start, end)` 每帧 `setTime` / `waitReady` / `screenshot` → 写 `<dir>/<6 位全局序号>.jpg`；每 `PROGRESS_EVERY` 帧回调一次进度。串行与并行共用 |
-| `src/render/worker.ts` | 子进程入口：从 argv 读一段 JSON 配置，调用 `renderRange`，进度按行写 stdout（`{"done": n}`），出错写 stderr 并以非零码退出 |
+| `src/render/worker.ts` | 子进程入口：从 argv 读一段 JSON 配置，调用 `renderRange`，进度按行写 stdout（`{"done": n}`），出错写 stderr 并以非零码退出。主进程用 `spawn(process.execPath, ["--import", "tsx", "src/render/worker.ts", json])` 启动——不用 `node_modules/.bin/tsx`，理由同 f69de91 中 vite 的 Windows ENOENT 问题 |
 | `src/render/cli.ts` | 编排：解析参数 → 起 vite（只起一次）→ `planSegments` → 派发 worker → 汇总进度 → 单次 ffmpeg 编码混音 → 清理 |
 
-帧序号 = 全局帧下标，`t = from + i * 1000 / fps`，与串行完全一致。
+帧文件名 = 本次渲染窗口内的帧下标 `i`（从 0 开始，6 位补零），`t = from + i * 1000 / fps`，与改动前串行实现完全一致。串行与并行都走「写帧文件 → 单次编码」，原先的 stdin 管道路径删除。
 
 ## 数据流
 
@@ -63,7 +63,7 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
                                |
                         全部成功退出
                                |
-  ffmpeg -f image2 -framerate 25 -start_number <from 帧号> -i frames/%06d.jpg
+  ffmpeg -f image2 -framerate 25 -start_number 0 -i frames/%06d.jpg
          [-ss <from 秒> -i audio.mp3] -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p
          [-af apad -c:a aac -b:a 160k -shortest] out.mp4
 ```
@@ -79,6 +79,7 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
 ## 一致性与验收
 
 1. `--jobs 1` 与 `--jobs 8` 渲染同一 `--from/--until` 窗口（须包含 Mermaid 卡片），两份 mp4 **md5 相同**。
+1. 与改动前的管道实现等价：`--from 24000 --until 26000`、无音频，基线 mp4 md5 为 `7cf94d7936eb430750f0dbb76ed37172`（提交 f69de91 时实测）。若 mp4 md5 因容器层元数据不同而不等，改比对解码帧 `ffmpeg -i x.mp4 -f framemd5 -`，逐帧哈希必须全部相同。
 2. 全片渲染耗时相对串行的加速比；顺带记录不同 `--jobs` 的吞吐，据此定 `auto` 默认值。
 3. `pnpm check` 通过（新增 `planSegments` 单测）；`pnpm e2e` 9 条通过。
 
