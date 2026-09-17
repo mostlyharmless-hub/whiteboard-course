@@ -46,7 +46,7 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
 |---|---|
 | `src/render/segments.ts` | `planSegments(totalFrames, jobs): {start, end}[]`（`end` 不含）。纯函数：帧数均分，余数分给前几段；`jobs > totalFrames` 时段数收敛到 `totalFrames`；`jobs <= 1` 返回单段 |
 | `src/render/frames.ts` | `renderRange(opts): Promise<void>`：开 chromium → `goto` → `waitReady` → 对 `[start, end)` 每帧 `setTime` / `waitReady` / `screenshot` → 写 `<dir>/<6 位全局序号>.jpg`；每 `PROGRESS_EVERY` 帧回调一次进度。串行与并行共用 |
-| `src/render/worker.ts` | 子进程入口：从 argv 读一段 JSON 配置，调用 `renderRange`，进度按行写 stdout（`{"done": n}`），出错写 stderr 并以非零码退出。主进程用 `spawn(process.execPath, ["--import", "tsx", "src/render/worker.ts", json])` 启动——不用 `node_modules/.bin/tsx`，理由同 f69de91 中 vite 的 Windows ENOENT 问题 |
+| `src/render/worker.ts` | 子进程入口：从环境变量 `RENDER_WORKER_CONFIG` 读 JSON 配置（避免 Windows 命令行对 JSON 引号的转义），调用 `renderRange`，进度按行写 stdout（`{"done": n}`），出错写 stderr 并以非零码退出。主进程用 `spawn(process.execPath, ["--import", "tsx", <worker.ts 绝对路径>])` 启动；stdin 关闭即中止——不用 `node_modules/.bin/tsx`，理由同 f69de91 中 vite 的 Windows ENOENT 问题 |
 | `src/render/cli.ts` | 编排：解析参数 → 起 vite（只起一次）→ `planSegments` → 派发 worker → 汇总进度 → 单次 ffmpeg 编码混音 → 清理 |
 
 帧文件名 = 本次渲染窗口内的帧下标 `i`（从 0 开始，6 位补零），`t = from + i * 1000 / fps`，与改动前串行实现完全一致。串行与并行都走「写帧文件 → 单次编码」，原先的 stdin 管道路径删除。
@@ -81,7 +81,7 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
 1. `--jobs 1` 与 `--jobs 8` 渲染同一 `--from/--until` 窗口（须包含 Mermaid 卡片），两份 mp4 **md5 相同**。
 1. 与改动前的管道实现等价：`--from 24000 --until 26000`、无音频，基线 mp4 md5 为 `7cf94d7936eb430750f0dbb76ed37172`（提交 f69de91 时实测）。若 mp4 md5 因容器层元数据不同而不等，改比对解码帧 `ffmpeg -i x.mp4 -f framemd5 -`，逐帧哈希必须全部相同。
 2. 全片渲染耗时相对串行的加速比；顺带记录不同 `--jobs` 的吞吐，据此定 `auto` 默认值。
-3. `pnpm check` 通过（新增 `planSegments` 单测）；`pnpm e2e` 9 条通过。
+3. `pnpm check` 通过（新增 `planSegments` 单测）；`pnpm e2e` 全部通过（实施后为 11 条，含 render-determinism、render-ready）。
 
 前提条件：Mermaid 手绘种子已固定（f69de91）。若没有这一条，不同 worker 渲染的同一张图笔触不同，段边界会"重新描线"，md5 等价性也无从谈起。
 
@@ -101,6 +101,8 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
 - 默认并行数：实测 1000 帧截图吞吐 1 路 9.5 帧/秒、4 路 37.9、8 路 68.0、12 路 84.7、16 路 91.7，按"不低于最高值 90% 的最小路数"取 12（`MAX_AUTO_JOBS = 12`、`CORES_PER_JOB = 2`）。串行实测约 106 ms/帧，比设计时估的 90.7 ms 慢。
 - 样例全片（7717 帧，含音频）：截图 78.1 s + 编码 36.0 s = 114 s。
 - 等价性验收发现 Chromium 对逐帧改 opacity 的 Mermaid 卡片栅格结果依赖渲染历史：串行逐帧经历淡入，与 worker 在淡入之后冷启动，最后一个节点有 511 个像素、最大灰度差 11 的差异（肉眼不可见）。与 `seq`、Mermaid SVG 标记无关（SVG 逐字节相同）。修复：`.mermaid-body { will-change: opacity; }` 固定独立合成层（`src/player/styles/board.css`）。修复同时消除了串行渲染对 `--from` 起点的依赖。
-- 因此设计中引用的基线 md5 `7cf94d7936eb430750f0dbb76ed37172` 已失效；修复后 24–26 s 窗口为 `96a4ca543ae14e72f94744e9ce4f7d54`，`--jobs 1` 与 `--jobs 8` 一致。
+- 因此设计中引用的基线 md5 `7cf94d7936eb430750f0dbb76ed37172` 已失效；此后又加了 `--disable-partial-raster`（见下），栅格结果再次变化，窗口级 md5 不再作为基线，等价性一律以同一代码的 `--jobs 1` 全片为准。
 - 代码审查追加的防护：`--frames-dir` 只清空只含 `^\d{6}\.jpg$` 文件的目录；ffmpeg / worker 启动失败报出原因；参数非数字时报「渲染区间无效」。
 - 失败路径：worker 超时时报出段号、帧范围与 worker stderr，保留帧目录、不产出 mp4、无残留 chromium；渲染中途强杀一个 worker，其余 worker 在 5–6 s 内中止，无孤儿进程。被强杀的 worker 无法写出原因，报错只有退出码。
+- 全片验收（`--jobs 12` vs `--jobs 1`，7717 帧）第一次不一致：差异只在视频流，都从分段起点（帧 1287 / 2573 / 4502）开始，像素差落在正在显示的高亮、画圈笔尖和带 SVG 滤镜的卡片边框。两条路径的 DOM（卡片与栏包围盒、画布 transform、标注 SVG）逐字节相同，差异来自 Chromium 局部重栅格化：默认只重画每帧脏矩形，抗锯齿边缘与滤镜附近的像素随渲染历史累积。对照实验：默认参数三处均复现，`--disable-partial-raster` 三处均一致，1000 帧 12 路吞吐不变。修复：`renderRange` 启动 chromium 时加该参数；e2e `tests/e2e/render-determinism.spec.ts` 覆盖。
+- 第二次不一致只在高负载下出现（两个 12 路渲染同时启动）：Mermaid 卡片出现后的 3–5 帧截到「绘制中…」占位符。诊断显示每个浏览器首个 Mermaid 的 `waitReady` 都等满 8 秒后静默放行，首次渲染实际 25–45 秒（按需加载的图表代码在 vite 开发服务器排队）；浏览器预热后再并发不复现。修复：`waitAssetsReady` 超时改为抛错、上限 120 秒，宁可渲染失败也不产出错误画面；e2e `tests/e2e/render-ready.spec.ts` 覆盖（拦截 flowDiagram 代码延迟 12 秒）。
