@@ -32,6 +32,10 @@ export async function renderRange(o: RangeOptions): Promise<void> {
   // 关闭局部重栅格化：默认只重画每帧的脏矩形，抗锯齿边缘与 SVG 滤镜附近的像素会随渲染历史累积出细微差异，
   // 逐帧走过来的串行渲染与从段中途冷启动的 worker 因此不一致（高亮、画圈、手绘边框处可见于逐字节比对）。
   const browser = await chromium.launch({ args: ["--disable-partial-raster"] });
+  // 中止时立即关闭浏览器：正在进行的 evaluate（如等待 Mermaid 最长 120 秒）随之失败，
+  // worker 不必等到下一个检查点，也就赶在主进程 15 秒强杀之前自行退出，不留孤儿 chromium
+  const onAbort = () => void browser.close().catch(() => {});
+  o.signal?.addEventListener("abort", onAbort, { once: true });
   try {
     const page = await browser.newPage({ viewport: { width: o.width, height: o.height }, deviceScaleFactor: 1 });
     o.signal?.throwIfAborted();
@@ -53,6 +57,7 @@ export async function renderRange(o: RangeOptions): Promise<void> {
       if (done % PROGRESS_EVERY === 0 || i === o.end - 1) o.onProgress?.(done);
     }
   } finally {
+    o.signal?.removeEventListener("abort", onAbort);
     // 关闭失败不能覆盖真正的出错原因（浏览器可能已经因为原始错误而挂掉）
     await browser.close().catch(() => {});
   }

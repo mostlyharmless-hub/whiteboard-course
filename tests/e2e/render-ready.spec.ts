@@ -9,7 +9,9 @@ const SCRIPT = "tests/fixtures/minimal.script.json";
 test("渲染模式：Mermaid 迟迟未就绪时 waitReady 继续等待，不放行占位符", async ({ page }) => {
   test.setTimeout(90_000);
   // 人为把 Mermaid 流程图代码的加载拖慢 12 秒（超过原先 8 秒的等待上限）
+  let delayed = 0;
   await page.route(/flowDiagram-[^/]*\.js/, async (route) => {
+    delayed++;
     await new Promise((r) => setTimeout(r, 12_000));
     await route.continue();
   });
@@ -18,7 +20,12 @@ test("渲染模式：Mermaid 迟迟未就绪时 waitReady 继续等待，不放�
   await page.evaluate(() => window.__player!.waitReady());
 
   await page.evaluate(() => window.__player!.setTime(12_000));
+  const started = Date.now();
   await page.evaluate(() => window.__player!.waitReady());
+  const waited = Date.now() - started;
+  // 依赖升级后按需加载的代码块改名时，拦截会落空、用例会空转通过：这两条保证延迟确实生效
+  expect(delayed).toBeGreaterThan(0);
+  expect(waited).toBeGreaterThan(8_000);
   // 立即检查（不用会自动重试的断言），反映截图那一刻的 DOM
   const state = await page.evaluate(() => ({
     placeholder: document.querySelector(".mermaid-placeholder") !== null,

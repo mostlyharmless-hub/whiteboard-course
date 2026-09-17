@@ -395,7 +395,7 @@ whiteboard-course/
 │   ├── shared/                    # schema、budget、reducer、lookup、fixtures
 │   ├── generator/                 # resolve、validate（用 fixtures）
 │   ├── fixtures/                  # minimal.script.json（6 条动作）、demo.script.json（样例课程手写 3 页+）、预录 LLM 响应
-│   └── e2e/                       # Playwright：计时器模式下定点截图
+│   └── e2e/                       # Playwright：计时器模式下定点截图；渲染模式确定性（冷启动 vs 串行逐字节一致）与 Mermaid 就绪等待
 ├── docs/superpowers/plans/        # 各里程碑的实施计划
 └── .claude/launch.json            # `pnpm dev` 的浏览器预览配置
 ```
@@ -458,7 +458,7 @@ whiteboard-course/
 3. **M3 接入 LLM** ✅ 2026-09-15 完成：阿里云 `qwen3.8-max`（OpenAI 兼容模式）对样例课程两次真实生成均 error 0、warning 0、7 节全部首轮通过，验收指标全部满足。提示词迭代记录：v1 几乎只用左栏（每页 `1+2 / 3+2 / 3+2 / 3 / 1 / 1`）、标注 9 次；加入"横向铺开"与"标注按节数分摊"后 v2 为 `1+1+1 / 1+1+1 / 1+2+2 / 1+1+1 / 1+1 / 1`、标注 5 次、Mermaid 6 张。随后加了"流程图只在有分支/循环/依赖时才画"一条（尚未用真实生成验证）。v1 响应作为离线回归 fixture（`tests/fixtures/llm/aigc-career-qwen/`）。
 4. **M4 收尾**：音频模式、相机跟随细节、Playwright 用例、`docs/adr` 补齐、README（运行方式与已知限制）。已完成（2026-09-15）：`pnpm e2e`（`tests/e2e/player.spec.ts`，`@playwright/test` 锁定 1.61.1 以匹配本机缓存的 chromium 1228；含静音 WAV 的音频模式用例）、`docs/adr/001–003`、README、播放器 `?t=` 初始定位参数、小视口聚焦当前栏、手写字体文件。**未完成**：用真实录播音频实测音频模式（缺样例 mp3）。
 
-5. **M5 配音与视频导出**（v1 之外，用户追加，ADR 004）✅ 2026-09-15：`pnpm tts`（Qwen3-TTS Ethan，样例 11 段全部放进原时间窗、无需加速，`samples/aigc-career.tts.mp3` 420.5 s）、`pnpm render`（1920×1080 @ 25 fps，约 1× 实时）、播放器 `?render=1` / `?subtitles=`，e2e 覆盖渲染模式。成片 `out/aigc-career.mp4`（v2 脚本 + 配音）。2026-09-17 追加分段并行渲染（设计 docs/superpowers/specs/2026-09-16-parallel-render-design.md）：12 路并行，样例全片 114 秒（串行约 14 分钟），与串行产物逐字节一致；为此 Mermaid 卡片加 will-change: opacity，使栅格结果与渲染历史无关。
+5. **M5 配音与视频导出**（v1 之外，用户追加，ADR 004）✅ 2026-09-15：`pnpm tts`（Qwen3-TTS Ethan，样例 11 段全部放进原时间窗、无需加速，`samples/aigc-career.tts.mp3` 420.5 s）、`pnpm render`（1920×1080 @ 25 fps，约 1× 实时）、播放器 `?render=1` / `?subtitles=`，e2e 覆盖渲染模式。成片 `out/aigc-career.mp4`（v2 脚本 + 配音）。2026-09-17 追加分段并行渲染（设计 docs/superpowers/specs/2026-09-16-parallel-render-design.md）：12 路并行，样例全片 114 秒（串行约 14 分钟），与串行产物逐字节一致（含两个 12 路渲染同时运行的高负载下）。为此三处缺一不可：Mermaid 卡片 `will-change: opacity`；`renderRange` 启动 chromium 带 `--disable-partial-raster`（局部重栅格化会让高亮、画圈、滤镜边框的像素依赖渲染历史）；渲染模式 `waitReady` 等 Mermaid 超时（120 秒）即报错，不再静默放行截到「绘制中…」占位符。
 
 每个里程碑结束时更新本文件中与实现不符的描述。
 

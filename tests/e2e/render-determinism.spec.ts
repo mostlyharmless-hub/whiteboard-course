@@ -11,7 +11,8 @@ import { frameFileName } from "../../src/render/segments";
  */
 test("renderRange：冷启动的分段与串行渲染逐字节一致（高亮、画圈、滤镜边框）", async () => {
   test.setTimeout(180_000);
-  const url = "http://localhost:5174/?script=tests%2Ffixtures%2Fminimal.script.json&render=1";
+  // 直接调用 renderRange，用不上 page 的 baseURL，从项目配置取同一地址
+  const url = `${test.info().project.use.baseURL}/?script=tests%2Ffixtures%2Fminimal.script.json&render=1`;
   const root = join("test-results", "render-determinism");
   const serialDir = join(root, "serial");
   const coldDir = join(root, "cold");

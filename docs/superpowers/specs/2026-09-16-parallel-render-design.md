@@ -14,7 +14,7 @@
 | `waitReady` | 36.2 ms | `document.fonts.ready` + 两次 rAF |
 | `screenshot` | 34.2 ms | CDP 截图 + JPEG 编码 |
 
-瓶颈是**单个浏览器的串行往返延迟**，不是 CPU 饱和：本机 i9-14900KF 32 逻辑核、128 GB 内存，串行渲染时绝大部分核心空闲。样例课程（306.7 s，7717 帧）全片约 11 分钟。
+瓶颈是**单个浏览器的串行往返延迟**，不是 CPU 饱和：本机 i9-14900KF 32 逻辑核、128 GB 内存，串行渲染时绝大部分核心空闲。样例课程（306.7 s，7717 帧）全片约 11 分钟（设计时估算；实施后实测约 106 ms/帧，约 13–14 分钟）。
 
 x264 medium / crf 18 在这颗 CPU 上 1080p 约 200 fps，全片编码约 40 s，**不是瓶颈**，因此不需要 NVENC。
 
@@ -34,7 +34,7 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
             [--port 5175] [--jobs <N|auto>] [--frames-dir <dir>] [--keep-frames]
 ```
 
-- `--jobs`：并行 worker 数，默认 `auto` = `clamp(floor(os.availableParallelism() / 4), 1, MAX_AUTO_JOBS)`，`MAX_AUTO_JOBS` 初值 8，实施后按吞吐实测调整（常量，写在 `segments.ts`）。`--jobs 1` 在主进程内直接调用 `renderRange`，不起子进程。
+- `--jobs`：并行 worker 数，默认 `auto` = `clamp(floor(os.availableParallelism() / CORES_PER_JOB), 1, MAX_AUTO_JOBS)`；两个常量写在 `segments.ts`，按本机吞吐实测定为 `CORES_PER_JOB = 2`、`MAX_AUTO_JOBS = 12`（设计时初值为 4 与 8）。`--jobs 1` 在主进程内直接调用 `renderRange`，不起子进程。
 - `--frames-dir`：临时帧目录，默认与 `--out` 同目录、名为 `<out 文件名去扩展名>.frames/`；**开始渲染前清空**（image2 会连续读取编号，残留的旧帧会被编进视频）；渲染成功后删除。
 - `--keep-frames`：保留帧目录（排查画面问题、重复编码时用）。
 
@@ -56,10 +56,10 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
 ```
                       vite :5175（单实例，所有 worker 共用）
                                |
-  planSegments(7717, 8)  ->  worker0 [0, 965)      chromium #0  -> frames/000000.jpg …
-                             worker1 [965, 1930)   chromium #1  -> frames/000965.jpg …
+  planSegments(7717, 12) ->  worker0  [0, 644)      chromium #0   -> frames/000000.jpg …
+                             worker1  [644, 1287)   chromium #1   -> frames/000644.jpg …
                              …
-                             worker7 [6752, 7717)  chromium #7  -> frames/006752.jpg …
+                             worker11 [7074, 7717)  chromium #11  -> frames/007074.jpg …
                                |
                         全部成功退出
                                |
@@ -78,10 +78,10 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
 
 ## 一致性与验收
 
-1. `--jobs 1` 与 `--jobs 8` 渲染同一 `--from/--until` 窗口（须包含 Mermaid 卡片），两份 mp4 **md5 相同**。
-1. 与改动前的管道实现等价：`--from 24000 --until 26000`、无音频，基线 mp4 md5 为 `7cf94d7936eb430750f0dbb76ed37172`（提交 f69de91 时实测）。若 mp4 md5 因容器层元数据不同而不等，改比对解码帧 `ffmpeg -i x.mp4 -f framemd5 -`，逐帧哈希必须全部相同。
-2. 全片渲染耗时相对串行的加速比；顺带记录不同 `--jobs` 的吞吐，据此定 `auto` 默认值。
-3. `pnpm check` 通过（新增 `planSegments` 单测）；`pnpm e2e` 全部通过（实施后为 11 条，含 render-determinism、render-ready）。
+1. `--jobs 1` 与多路并行渲染同一 `--from/--until` 窗口（须包含 Mermaid 卡片），两份 mp4 **md5 相同**；实施后以样例**全片**的 `--jobs 12` 与 `--jobs 1` 为准（见实施记录）。
+2. ~~与改动前的管道实现等价：~~（已作废：后续栅格化修复改变了像素，基线 md5 失效，见实施记录）`--from 24000 --until 26000`、无音频，基线 mp4 md5 为 `7cf94d7936eb430750f0dbb76ed37172`（提交 f69de91 时实测）。若 mp4 md5 因容器层元数据不同而不等，改比对解码帧 `ffmpeg -i x.mp4 -f framemd5 -`，逐帧哈希必须全部相同。
+3. 全片渲染耗时相对串行的加速比；顺带记录不同 `--jobs` 的吞吐，据此定 `auto` 默认值。
+4. `pnpm check` 通过（新增 `planSegments` 单测）；`pnpm e2e` 全部通过（实施后为 11 条，含 render-determinism、render-ready）。
 
 前提条件：Mermaid 手绘种子已固定（f69de91）。若没有这一条，不同 worker 渲染的同一张图笔触不同，段边界会"重新描线"，md5 等价性也无从谈起。
 

@@ -153,7 +153,8 @@
 
 /* Mermaid 卡片按 progress 逐帧改 opacity 淡入。不加提示时 Chromium 的栅格结果取决于历史：
    逐帧经历过淡入的图，与直接跳到淡入完成时刻挂载的图，像素有细微差异（同一 SVG 标记），
-   导致分段并行渲染时从淡入之后冷启动的 worker 与串行渲染不一致。固定独立合成层后与历史无关。 */
+   导致分段并行渲染时从淡入之后冷启动的 worker 与串行渲染不一致。固定独立合成层后与历史无关。
+   渲染端另外关闭了局部重栅格化（src/render/frames.ts 的 --disable-partial-raster），两者各管一类差异，都不能去掉。 */
 .mermaid-body {
   will-change: opacity;
 }
