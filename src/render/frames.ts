@@ -28,6 +28,7 @@ export interface RangeOptions extends RenderTarget, Segment {
 
 /** 起一个 chromium，把帧下标 [start, end) 逐帧截图写成 JPEG */
 export async function renderRange(o: RangeOptions): Promise<void> {
+  o.signal?.throwIfAborted();
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage({ viewport: { width: o.width, height: o.height }, deviceScaleFactor: 1 });
@@ -46,6 +47,7 @@ export async function renderRange(o: RangeOptions): Promise<void> {
       if (done % PROGRESS_EVERY === 0 || i === o.end - 1) o.onProgress?.(done);
     }
   } finally {
-    await browser.close();
+    // 关闭失败不能覆盖真正的出错原因（浏览器可能已经因为原始错误而挂掉）
+    await browser.close().catch(() => {});
   }
 }
