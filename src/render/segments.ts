@@ -1,9 +1,9 @@
 import { basename, dirname, extname, join } from "node:path";
 
-/** --jobs auto 时每路 worker 预留的逻辑核数（chromium 渲染 + JPEG 编码 + Node 主线程） */
-export const CORES_PER_JOB = 4;
-/** --jobs auto 的上限；按本机实测吞吐确定（计划 Task 5） */
-export const MAX_AUTO_JOBS = 8;
+/** --jobs auto 时每路 worker 预留的逻辑核数；取 floor(32 / MAX_AUTO_JOBS)，使本机 i9-14900KF（32 逻辑核）auto 恰为 MAX_AUTO_JOBS */
+export const CORES_PER_JOB = 2;
+/** --jobs auto 的上限。本机实测 1000 帧截图：1 路 9.5 帧/秒、4 路 37.9、8 路 68.0、12 路 84.7、16 路 91.7（12/16 取 3 次均值）→ 取不低于最高值 90% 的最小路数 */
+export const MAX_AUTO_JOBS = 12;
 /** ffmpeg image2 的帧文件名模式，须与 frameFileName 一致 */
 export const FRAME_PATTERN = "%06d.jpg";
 
