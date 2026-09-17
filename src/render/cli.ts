@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +21,24 @@ const USAGE = `用法：pnpm render --script <script.json> --out <video.mp4> [--
 --jobs 并行路数，auto = 逻辑核数 / ${CORES_PER_JOB}（至少 1，至多 ${MAX_AUTO_JOBS}）；--jobs 1 不起子进程。
 --frames-dir 临时帧目录（默认输出文件旁的 <文件名>.frames/，开始前清空、成功后删除）；--keep-frames 成功后也保留。
 `;
+
+/** 帧文件名模式：与 frameFileName / FRAME_PATTERN 一致（六位数字 + .jpg） */
+const FRAME_FILE_RE = /^\d{6}\.jpg$/;
+
+/**
+ * 清空帧目录前的安全检查：只允许删除不存在的路径，或一个只含帧文件（可为空）的目录。
+ * `--frames-dir` 由用户传入，一旦传错（如指向 `out` 或 `.`）rmSync 会把无关文件一并删掉，
+ * 因此这里拒绝任何"目录存在但含有非帧文件"或"路径存在但不是目录"的情况。
+ */
+function clearFramesDir(dir: string): void {
+  if (!existsSync(dir)) return;
+  if (!statSync(dir).isDirectory()) throw new Error(`帧目录路径已存在且不是目录，拒绝清空：${dir}`);
+  const entries = readdirSync(dir);
+  if (!entries.every((f) => FRAME_FILE_RE.test(f))) {
+    throw new Error(`帧目录中有非帧文件，拒绝清空：${dir}（请指定一个新的或只含帧文件的目录）`);
+  }
+  rmSync(dir, { recursive: true, force: true });
+}
 
 /** 汇总进度的最短打印间隔 */
 const PROGRESS_PRINT_MS = 5000;
@@ -143,11 +161,11 @@ async function ensureServer(port: number): Promise<ChildProcess | null> {
   throw new Error(`vite 在 ${port} 端口 30 秒内未就绪`);
 }
 
-/** 子进程结束时给出退出码；启动失败（error 事件）视为 null */
-function waitExit(child: ChildProcess): Promise<number | null> {
+/** 子进程结束时给出退出码；启动失败（error 事件，如可执行文件不存在）时附带原始错误 */
+function waitExit(child: ChildProcess): Promise<{ code: number | null; error?: Error }> {
   return new Promise((resolve) => {
-    child.once("error", () => resolve(null));
-    child.once("close", (code) => resolve(code));
+    child.once("error", (error) => resolve({ code: null, error }));
+    child.once("close", (code) => resolve({ code }));
   });
 }
 
@@ -201,9 +219,10 @@ async function runWorkers(segments: Segment[], target: RenderTarget, onProgress:
   const failures: string[] = [];
   await Promise.all(
     workers.map(async (w, k) => {
-      const code = await waitExit(w.child);
+      const { code, error } = await waitExit(w.child);
       if (code === 0 || failures.length > 0) return;
-      failures.push(`第 ${k + 1}/${workers.length} 段（帧 ${w.segment.start}–${w.segment.end - 1}）渲染失败，退出码 ${code}\n${w.stderr.trim()}`);
+      const reason = error ? `无法启动 worker：${error.message}` : `退出码 ${code}`;
+      failures.push(`第 ${k + 1}/${workers.length} 段（帧 ${w.segment.start}–${w.segment.end - 1}）渲染失败，${reason}\n${w.stderr.trim()}`);
       for (const other of workers) other.child.stdin!.end();
       // 兜底：worker 没在宽限期内自行退出就强杀（可能遗留其 chromium，只在异常情况下发生）
       setTimeout(() => {
@@ -221,7 +240,8 @@ async function encode(args: Args, framesDir: string): Promise<void> {
   ffArgs.push("-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-r", String(args.fps));
   if (args.audio) ffArgs.push("-af", "apad", "-c:a", "aac", "-b:a", "160k", "-shortest");
   ffArgs.push(args.out);
-  const code = await waitExit(spawn("ffmpeg", ffArgs, { stdio: ["ignore", "inherit", "inherit"] }));
+  const { code, error } = await waitExit(spawn("ffmpeg", ffArgs, { stdio: ["ignore", "inherit", "inherit"] }));
+  if (error) throw new Error(`无法启动 ffmpeg：${error.message}`);
   if (code !== 0) throw new Error(`ffmpeg 退出码 ${code}`);
 }
 
@@ -232,12 +252,12 @@ async function main(): Promise<number> {
   // 课程结束后多停 tail 毫秒（播放器把 t 钳到 duration，画面保持最后状态；音频用 apad 补静音）
   const until = args.until !== undefined ? Math.min(args.until, script.meta.duration_ms) : script.meta.duration_ms + args.tail;
   const frames = Math.ceil(((until - args.from) / 1000) * args.fps);
-  if (frames <= 0) throw new Error(`渲染区间为空：from ${args.from} ms，until ${until} ms`);
+  if (!Number.isFinite(frames) || frames <= 0) throw new Error(`渲染区间无效：from ${args.from} ms，until ${until} ms，fps ${args.fps}`);
   const segments = planSegments(frames, args.jobs);
 
   // 开始前清空：image2 按编号连续读取，残留的旧帧会被编进视频
   const framesDir = args.framesDir ?? defaultFramesDir(args.out);
-  rmSync(framesDir, { recursive: true, force: true });
+  clearFramesDir(framesDir);
   mkdirSync(framesDir, { recursive: true });
   mkdirSync(dirname(args.out), { recursive: true });
 
@@ -268,7 +288,7 @@ async function main(): Promise<number> {
     console.error(`帧截图完成，用时 ${((renderedAt - startedAt) / 1000).toFixed(1)} s；开始编码`);
 
     await encode(args, framesDir);
-    if (!args.keepFrames) rmSync(framesDir, { recursive: true, force: true });
+    if (!args.keepFrames) clearFramesDir(framesDir);
     console.error(`已写出 ${args.out}（编码 ${((Date.now() - renderedAt) / 1000).toFixed(1)} s，总用时 ${((Date.now() - startedAt) / 1000).toFixed(1)} s）`);
     return 0;
   } finally {
