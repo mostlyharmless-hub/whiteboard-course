@@ -32,10 +32,14 @@ export async function renderRange(o: RangeOptions): Promise<void> {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage({ viewport: { width: o.width, height: o.height }, deviceScaleFactor: 1 });
+    o.signal?.throwIfAborted();
     page.on("pageerror", (e) => console.error("页面错误：", e.message));
     await page.goto(o.url);
+    o.signal?.throwIfAborted();
     await page.waitForFunction(() => window.__player !== undefined, null, { timeout: 30_000 });
+    o.signal?.throwIfAborted();
     await page.evaluate(() => window.__player!.waitReady());
+    o.signal?.throwIfAborted();
     for (let i = o.start; i < o.end; i++) {
       o.signal?.throwIfAborted();
       const t = o.from + (i * 1000) / o.fps;

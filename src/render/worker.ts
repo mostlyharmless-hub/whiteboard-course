@@ -13,6 +13,7 @@ async function main(): Promise<number> {
   const config = JSON.parse(raw) as RenderTarget & Segment;
   const abort = new AbortController();
   process.stdin.on("end", () => abort.abort(new Error("主进程要求中止")));
+  process.stdin.on("error", () => abort.abort(new Error("主进程要求中止")));
   process.stdin.resume();
   await renderRange({
     ...config,
@@ -22,9 +23,18 @@ async function main(): Promise<number> {
   return 0;
 }
 
+/** 让 stdout / stderr 的管道写入排空后再退出（POSIX 上管道写入是异步的，直接 process.exit 可能丢掉最后的进度或错误信息） */
+function finish(code: number): void {
+  process.exitCode = code;
+  // stdin.resume() 会一直占住事件循环，必须释放
+  process.stdin.destroy();
+  // 兜底：若仍有句柄占住事件循环，2 秒后强制退出，保证主进程不会一直等
+  setTimeout(() => process.exit(code), 2000).unref();
+}
+
 main()
-  .then((code) => process.exit(code))
+  .then(finish)
   .catch((e: unknown) => {
     console.error(e instanceof Error ? e.message : String(e));
-    process.exit(2);
+    finish(2);
   });
