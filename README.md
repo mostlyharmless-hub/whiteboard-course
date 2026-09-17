@@ -45,7 +45,7 @@ pnpm render --script out/aigc-career-v2.fixed.script.json --audio samples/aigc-c
 
 - `pnpm tts`：文本按术语表纠错后逐段调用阿里云 Qwen3-TTS（`.env` 的 `TTS_MODEL / TTS_VOICE`，默认 `qwen3-tts-flash` / `Ethan`）。`--timeline compact` 段与段紧接、留 `--gap` 毫秒；`--timeline original` 每段放在原 `begin_time`、必要时 `atempo` 加速。同时写出 `<name>.transcript.json`（文本纠错，时间为所选时间轴）。段结果按内容哈希缓存在 `out/tts-cache/`。需要 `ffmpeg / ffprobe`。
 - `pnpm timeline --transcript`：把已有板书脚本按每条动作在段内的相对位置映射到新讲解稿的时间轴（ADR 006），并套用"有语音时白板不为空"（ADR 005）。
-- `pnpm render`：在 `?render=1` 模式下用 Playwright 逐帧 `setTime` 截图，管道交给 ffmpeg 合成 1920×1080 @ 25 fps 的 mp4（libx264 + aac）；约 1× 实时速度。`--until 10000` 先渲染 10 秒验证；`--subtitles` 用配音版讲解稿覆盖字幕。
+- `pnpm render`：在 `?render=1` 模式下多个 chromium 并行逐帧 `setTime` 截图成 JPEG，再由一个 ffmpeg 按序合成 1920×1080 @ 25 fps 的 mp4（libx264 + aac）。`--jobs` 默认 `auto`（本机 i9-14900KF 为 12 路，样例全片约 2 分钟，串行约 14 分钟）；`--jobs 1` 串行，产物与并行逐字节一致。临时帧写在输出文件旁的 `<名>.frames/`（`--frames-dir` 可改，只会清空只含帧文件的目录；成功后删除，`--keep-frames` 保留）。`--until 10000` 先渲染 10 秒验证；`--subtitles` 用配音版讲解稿覆盖字幕。
 - 播放器试听：`/?script=out/aigc-career-v2.script.json&audio=samples/aigc-career.tts.mp3&subtitles=samples/aigc-career.tts.transcript.json`
 
 ## 开发

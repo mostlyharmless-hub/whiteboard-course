@@ -1,7 +1,7 @@
 # 分段并行渲染（pnpm render --jobs）设计
 
 - 日期：2026-09-16
-- 状态：已确认，待实施
+- 状态：已实施（2026-09-17，分支 feat/parallel-render）
 - 关联：ADR 004（视频导出）、提交 f69de91（固定 Mermaid 手绘种子，本设计的前提）
 
 ## 背景
@@ -95,3 +95,12 @@ pnpm render --script <script.json> --out <video.mp4> [--audio <mp3>] [--subtitle
 - NVENC / QSV 硬件编码：编码不是瓶颈，x264 同码率质量更好。
 - 断点续渲：失败重跑约 1.5 分钟，不值一层状态管理。
 - 降低 `waitReady` 的每帧开销（少等一次 rAF 之类）：影响画面正确性的风险大于收益，并行已经解决吞吐问题。
+
+## 实施记录
+
+- 默认并行数：实测 1000 帧截图吞吐 1 路 9.5 帧/秒、4 路 37.9、8 路 68.0、12 路 84.7、16 路 91.7，按"不低于最高值 90% 的最小路数"取 12（`MAX_AUTO_JOBS = 12`、`CORES_PER_JOB = 2`）。串行实测约 106 ms/帧，比设计时估的 90.7 ms 慢。
+- 样例全片（7717 帧，含音频）：截图 78.1 s + 编码 36.0 s = 114 s。
+- 等价性验收发现 Chromium 对逐帧改 opacity 的 Mermaid 卡片栅格结果依赖渲染历史：串行逐帧经历淡入，与 worker 在淡入之后冷启动，最后一个节点有 511 个像素、最大灰度差 11 的差异（肉眼不可见）。与 `seq`、Mermaid SVG 标记无关（SVG 逐字节相同）。修复：`.mermaid-body { will-change: opacity; }` 固定独立合成层（`src/player/styles/board.css`）。修复同时消除了串行渲染对 `--from` 起点的依赖。
+- 因此设计中引用的基线 md5 `7cf94d7936eb430750f0dbb76ed37172` 已失效；修复后 24–26 s 窗口为 `96a4ca543ae14e72f94744e9ce4f7d54`，`--jobs 1` 与 `--jobs 8` 一致。
+- 代码审查追加的防护：`--frames-dir` 只清空只含 `^\d{6}\.jpg$` 文件的目录；ffmpeg / worker 启动失败报出原因；参数非数字时报「渲染区间无效」。
+- 失败路径：worker 超时时报出段号、帧范围与 worker stderr，保留帧目录、不产出 mp4、无残留 chromium；渲染中途强杀一个 worker，其余 worker 在 5–6 s 内中止，无孤儿进程。被强杀的 worker 无法写出原因，报错只有退出码。
