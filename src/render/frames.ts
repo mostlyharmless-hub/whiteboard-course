@@ -29,7 +29,9 @@ export interface RangeOptions extends RenderTarget, Segment {
 /** 起一个 chromium，把帧下标 [start, end) 逐帧截图写成 JPEG */
 export async function renderRange(o: RangeOptions): Promise<void> {
   o.signal?.throwIfAborted();
-  const browser = await chromium.launch();
+  // 关闭局部重栅格化：默认只重画每帧的脏矩形，抗锯齿边缘与 SVG 滤镜附近的像素会随渲染历史累积出细微差异，
+  // 逐帧走过来的串行渲染与从段中途冷启动的 worker 因此不一致（高亮、画圈、手绘边框处可见于逐字节比对）。
+  const browser = await chromium.launch({ args: ["--disable-partial-raster"] });
   try {
     const page = await browser.newPage({ viewport: { width: o.width, height: o.height }, deviceScaleFactor: 1 });
     o.signal?.throwIfAborted();
