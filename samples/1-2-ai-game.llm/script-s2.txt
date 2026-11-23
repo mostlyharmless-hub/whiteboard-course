@@ -1,0 +1,61 @@
+[
+  {
+    "type": "new_page",
+    "title": "案例：看清任务与分工",
+    "anchor": {
+      "paragraph_id": "s02p1",
+      "quote": "本课的示例是方程魔法学院"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 案例：看清任务与分工\n- 案例：方程魔法学院：先认概念，再解方程\n- AI：辅助整理与生成初稿\n- 教师：确认目标、审核与应用",
+    "anchor": {
+      "paragraph_id": "s02p1",
+      "quote": "本课的示例是方程魔法学院"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "案例：方程魔法学院：先认概念，再解方程",
+    "anchor": {
+      "paragraph_id": "s02p1",
+      "quote": "学生辨认方程、完成计算"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s02p1",
+      "quote": "答错时获得提示并重答"
+    }
+  },
+  {
+    "type": "mermaid",
+    "card_id": "c2",
+    "title": "闯关状态（教学示例）",
+    "code": "flowchart TD\n  A[作答] --> B{答对了吗}\n  B -->|是| C[进入下一关]\n  B -->|否| D[提示并重答]\n  D --> A",
+    "anchor": {
+      "paragraph_id": "s02p1",
+      "quote": "答错时获得提示并重答"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s02p1",
+      "quote": "我们关注的是题目、反馈"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 关注什么\n题目 · 反馈 · 学习目标之间的关系\n\n> 故事和徽章为这条学习路径服务\n\n正式录屏须来自实际保存并测试过的游戏",
+    "anchor": {
+      "paragraph_id": "s02p1",
+      "quote": "我们关注的是题目、反馈"
+    }
+  }
+]

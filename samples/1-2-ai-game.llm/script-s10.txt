@@ -1,0 +1,102 @@
+[
+  {
+    "type": "new_page",
+    "title": "检查与修改游戏",
+    "anchor": {
+      "paragraph_id": "s10p1",
+      "quote": "请对照这份质量检查清单"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 质量检查清单\n1. 界面正常显示，无空白乱码\n2. 答对：通关剧情 + 下一关按钮\n3. 答错：有提示、能重答、不跳关\n4. 五关通关：完成页 / 徽章墙\n5. 题目与知识点对准教学目标，**答案准确无误**\n6. 移动端显示（可选）",
+    "anchor": {
+      "paragraph_id": "s10p1",
+      "quote": "请对照这份质量检查清单"
+    }
+  },
+  {
+    "type": "circle",
+    "target_card_id": "c1",
+    "snippet": "答案准确无误",
+    "anchor": {
+      "paragraph_id": "s10p1",
+      "quote": "尤其重要的一条，题目内容"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s10p2",
+      "quote": "发现问题不用从头来过。"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 发现问题：不用从头来\n1. 写清要改的地方：答案错 / 某关太难 / 换风格\n2. 回到**原对话**发给 AI\n3. 在已生成的游戏基础上修改\n4. 新代码再保存一次",
+    "anchor": {
+      "paragraph_id": "s10p2",
+      "quote": "发现问题不用从头来过。"
+    }
+  },
+  {
+    "type": "new_page",
+    "title": "迁移：放进自己的教学场景",
+    "anchor": {
+      "paragraph_id": "s10p3",
+      "quote": "这里介绍了同一套方法"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 同一框架，换学科\n| 学科 | 游戏 | 关卡 |\n|---|---|---|\n| 英语 | 单词星际探险 | 词汇 + 语法 |\n| 语文 | 古诗闯关 | 字词、含义、情感 |\n| 历史 | 时光穿越者 | 按朝代顺序 |",
+    "anchor": {
+      "paragraph_id": "s10p3",
+      "quote": "这里介绍了同一套方法"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s10p4",
+      "quote": "具体到这次示范：换成古诗"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c4",
+    "content": "## 迁移：放进自己的教学场景\n- 迁移任务：换成古诗或英语词汇时，先更换学习目标和关卡题目，再更换故事皮肤。\n- 保留结构，重审条件\n- 小范围试用 → 记录 → 调整",
+    "anchor": {
+      "paragraph_id": "s10p4",
+      "quote": "具体到这次示范：换成古诗"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c4",
+    "snippet": "先更换学习目标和关卡题目",
+    "anchor": {
+      "paragraph_id": "s10p4",
+      "quote": "迁移时先检查任务对象"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s10p4",
+      "quote": "不要只换学科名称"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c5",
+    "content": "> 不要只换学科名称，就默认旧结果仍然合适\n\n变化了的条件要**重新验证**",
+    "anchor": {
+      "paragraph_id": "s10p4",
+      "quote": "不要只换学科名称"
+    }
+  }
+]

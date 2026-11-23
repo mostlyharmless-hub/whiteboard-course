@@ -1,0 +1,60 @@
+[
+  {
+    "type": "new_page",
+    "title": "应用：形成教师可用的材料",
+    "anchor": {
+      "paragraph_id": "s09p1",
+      "quote": "将代码复制到纯文本编辑器"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 应用：形成教师可用的材料\n- 保存操作步骤",
+    "anchor": {
+      "paragraph_id": "s09p1",
+      "quote": "将代码复制到纯文本编辑器"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s09p1",
+      "quote": "保存为UTF-8编码的HTML文件"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 保存步骤\n1. 复制代码 → 纯文本编辑器\n2. 保存为 UTF-8 编码的 HTML 文件\n3. 检查扩展名：不是 `.html.txt`\n4. 用目标浏览器打开",
+    "anchor": {
+      "paragraph_id": "s09p1",
+      "quote": "保存为UTF-8编码的HTML文件"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "保存操作步骤",
+    "anchor": {
+      "paragraph_id": "s09p1",
+      "quote": "检查文件扩展名，避免"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s09p1",
+      "quote": "如果空白或乱码，先检查"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 出问题时\n- 空白 / 乱码 → 查保存格式、代码是否复制完整\n- 功能异常 → 记录操作路径，交给 AI 修复\n\n> 每次修改另存新版本，不覆盖唯一的可用版本",
+    "anchor": {
+      "paragraph_id": "s09p1",
+      "quote": "如果空白或乱码，先检查"
+    }
+  }
+]

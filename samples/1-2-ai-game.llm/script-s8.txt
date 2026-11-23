@@ -1,0 +1,69 @@
+[
+  {
+    "type": "new_page",
+    "title": "修复：描述问题并重新核验",
+    "anchor": {
+      "paragraph_id": "s08p1",
+      "quote": "如果发现输出偏离要求"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 修复：描述问题并重新核验\n- 发现问题 → 精确修复指令\n- 修改版 → 重测原失败项\n- 保留版本与核查记录",
+    "anchor": {
+      "paragraph_id": "s08p1",
+      "quote": "如果发现输出偏离要求"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "发现问题 → 精确修复指令",
+    "anchor": {
+      "paragraph_id": "s08p1",
+      "quote": "要指出具体位置、问题表现"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s08p1",
+      "quote": "本课可以这样追加指令"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 修复指令（教学示例）\n位置 + 问题表现 + 保留部分\n\n> 第二关答错后仍然跳关。请修复条件判断，只有答案为 8 时才显示下一关；保留题目与其他界面，返回完整单文件代码。",
+    "anchor": {
+      "paragraph_id": "s08p1",
+      "quote": "本课可以这样追加指令"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s08p2",
+      "quote": "收到修改版后，回到刚才"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 重新核验\n1. 重测原失败项\n2. 检查相邻内容有没有被连带改坏\n3. 保留第一版与修改版，对照变化",
+    "anchor": {
+      "paragraph_id": "s08p2",
+      "quote": "收到修改版后，回到刚才"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c4",
+    "content": "> AI 说“已完成” ≠ 验收结果\n> 修复后的文本仍然需要核验",
+    "anchor": {
+      "paragraph_id": "s08p2",
+      "quote": "修复后的文本仍然需要核验"
+    }
+  }
+]

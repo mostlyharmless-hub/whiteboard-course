@@ -1,0 +1,53 @@
+[
+  {
+    "type": "new_page",
+    "title": "停顿思考：先作判断",
+    "anchor": {
+      "paragraph_id": "s04p1",
+      "quote": "先停下来想一想：页面能打开"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 思考题\n页面能打开，但任何答案都能进入下一关，算完成了吗？",
+    "anchor": {
+      "paragraph_id": "s04p1",
+      "quote": "先停下来想一想：页面能打开"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "任何答案都能进入下一关",
+    "anchor": {
+      "paragraph_id": "s04p1",
+      "quote": "算完成了吗？"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s04p2",
+      "quote": "没有。应分别测试答对"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 解析\n**没有。**\n- 分别测试四条路径：答对 / 答错 / 重答 / 全部通关\n- 逐题核对答案",
+    "anchor": {
+      "paragraph_id": "s04p2",
+      "quote": "没有。应分别测试答对"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "> 判断标准：能运行、反馈正确\n> 而不是文字流畅、画面漂亮",
+    "anchor": {
+      "paragraph_id": "s04p2",
+      "quote": "我们就用这条判断标准检查结果"
+    }
+  }
+]

@@ -1,0 +1,60 @@
+[
+  {
+    "type": "new_page",
+    "title": "验证：检查第一版输出",
+    "anchor": {
+      "paragraph_id": "s07p1",
+      "quote": "拿到代码后，先确认输出"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 验证：检查第一版输出\n- 逐题独立核对答案\n- 答错不能跳关\n- 保存、重开、通关均已测试",
+    "anchor": {
+      "paragraph_id": "s07p1",
+      "quote": "拿到代码后，先确认输出"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s07p1",
+      "quote": "如果中途截断，可以要求"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 先看完整性\n- 是完整页面，不是制作建议\n- 中途截断 → 要求重新给出完整版\n- 首尾标签齐全 ≠ 功能正确",
+    "anchor": {
+      "paragraph_id": "s07p1",
+      "quote": "如果中途截断，可以要求"
+    }
+  },
+  {
+    "type": "circle",
+    "target_card_id": "c1",
+    "snippet": "逐题独立核对答案",
+    "anchor": {
+      "paragraph_id": "s07p1",
+      "quote": "并不能证明功能正确"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s07p1",
+      "quote": "真正的验收要把文件打开"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 真正的验收：打开测试\n1. 正确作答\n2. 错误提示\n3. 重答\n4. 最终通关\n\n发现问题 → 记录**题号、操作、实际结果** → 回原对话请求修复",
+    "anchor": {
+      "paragraph_id": "s07p1",
+      "quote": "真正的验收要把文件打开"
+    }
+  }
+]

@@ -1,0 +1,69 @@
+[
+  {
+    "type": "new_page",
+    "title": "演示：从输入走到可见结果",
+    "anchor": {
+      "paragraph_id": "s06p1",
+      "quote": "先写第一关的知识目标"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 演示：从输入走到可见结果\n- 第2关：2x−6=10\n- 答错 → 提示 → 重答\n- 答对：x=8 → 解锁下一关\n\n教师先算出答案，再交给 AI（教学示例）",
+    "anchor": {
+      "paragraph_id": "s06p1",
+      "quote": "先写第一关的知识目标"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "第2关：2x−6=10",
+    "anchor": {
+      "paragraph_id": "s06p1",
+      "quote": "教师先算出答案是八"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s06p1",
+      "quote": "生成后，画面切到保存过程"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 保存并打开\n1. 复制代码 → 纯文本编辑器\n2. 按 UTF-8 保存为 `方程游戏.html`\n3. 确认不是以 `.txt` 结尾\n4. 用浏览器打开",
+    "anchor": {
+      "paragraph_id": "s06p1",
+      "quote": "生成后，画面切到保存过程"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s06p1",
+      "quote": "第一次故意答错，检查"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 核验（教学示例）\n- 第一次故意答错：仍停在当前关？\n- 第二次答对：出现解释和下一关按钮？",
+    "anchor": {
+      "paragraph_id": "s06p1",
+      "quote": "第一次故意答错，检查"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c4",
+    "content": "> 首尾标签存在只是初步检查\n> **能运行、反馈正确**才是重点",
+    "anchor": {
+      "paragraph_id": "s06p1",
+      "quote": "代码首尾标签存在只是初步检查"
+    }
+  }
+]

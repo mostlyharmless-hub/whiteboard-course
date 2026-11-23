@@ -1,0 +1,78 @@
+[
+  {
+    "type": "new_page",
+    "title": "提示词：把条件写清楚",
+    "anchor": {
+      "paragraph_id": "s05p1",
+      "quote": "现在进入生成环节。"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 提示词：把条件写清楚\n- 任务：方程魔法学院：先认概念，再解方程\n- 验收：逐题独立核对答案\n- 条件与边界见本镜提示词",
+    "anchor": {
+      "paragraph_id": "s05p1",
+      "quote": "现在进入生成环节。"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s05p1",
+      "quote": "先确认任务对象和输入材料"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## ① 任务与材料\n> 制作“方程魔法学院”单文件 HTML 游戏，面向初中数学\n\n五关：辨认方程 → 2x−6=10 → 3x+2=11 → 2(x+1)=10 → 列方程（本子每本 3 元 + 包装 2 元 = 17 元）",
+    "anchor": {
+      "paragraph_id": "s05p1",
+      "quote": "先确认任务对象和输入材料"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## ② 输出要求\n- 答案：含未知数的等式 / 8 / 3 / 4 / 5 本\n- 答错给提示，允许重答\n- 答对才进入下一关\n- 结束显示徽章",
+    "anchor": {
+      "paragraph_id": "s05p1",
+      "quote": "再明确输出要求"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s05p1",
+      "quote": "最后写上需要遵守的边界"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c4",
+    "content": "## ③ 边界\n- CSS 和 JS 均内嵌，不依赖外部资源\n- 输出完整代码\n\n**发送前**：粘贴到已获准使用的 AI 工具；核对示例已换成本课材料",
+    "anchor": {
+      "paragraph_id": "s05p1",
+      "quote": "最后写上需要遵守的边界"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "任务：方程魔法学院：先认概念，再解方程",
+    "anchor": {
+      "paragraph_id": "s05p2",
+      "quote": "本次任务是：方程魔法学院"
+    }
+  },
+  {
+    "type": "circle",
+    "target_card_id": "c1",
+    "snippet": "逐题独立核对答案",
+    "anchor": {
+      "paragraph_id": "s05p2",
+      "quote": "请特别检查这一条"
+    }
+  }
+]

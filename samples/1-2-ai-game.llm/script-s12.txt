@@ -1,0 +1,61 @@
+[
+  {
+    "type": "new_page",
+    "title": "总结：带走方法与成果",
+    "anchor": {
+      "paragraph_id": "s12p1",
+      "quote": "回顾今天的主线，我们从"
+    }
+  },
+  {
+    "type": "mermaid",
+    "card_id": "c1",
+    "title": "今天的主线",
+    "code": "flowchart TD\n  A[案例任务] --> B[写进提示词] --> C[按标准检查] --> D[针对问题修复] --> E[放回教学场景]",
+    "anchor": {
+      "paragraph_id": "s12p1",
+      "quote": "回顾今天的主线，我们从"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s12p1",
+      "quote": "请记住本课三条检查"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 总结：带走方法与成果\n- 逐题独立核对答案\n- 答错不能跳关\n- 保存、重开、通关均已测试\n- 成果：可运行的五关HTML游戏、题目答案表、试玩检查记录",
+    "anchor": {
+      "paragraph_id": "s12p1",
+      "quote": "请记住本课三条检查"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c2",
+    "snippet": "逐题独立核对答案",
+    "anchor": {
+      "paragraph_id": "s12p1",
+      "quote": "第二，答错不能跳关"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s12p2",
+      "quote": "在网页课程配套使用时"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 下一次\n- 完成操作才记录学习进度；看完视频 ≠ 平台自动完成评价\n- 先打开今天的**审核记录**，从已发现的问题开始改进",
+    "anchor": {
+      "paragraph_id": "s12p2",
+      "quote": "在网页课程配套使用时"
+    }
+  }
+]

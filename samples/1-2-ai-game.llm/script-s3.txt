@@ -1,0 +1,61 @@
+[
+  {
+    "type": "new_page",
+    "title": "原理：搭建关键结构",
+    "anchor": {
+      "paragraph_id": "s03p1",
+      "quote": "接下来说明游戏化学习的三要素"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 原理：搭建关键结构\n- 情境：方程魔法学院\n- 挑战：五关逐步递进\n- 激励：解释反馈与通关徽章",
+    "anchor": {
+      "paragraph_id": "s03p1",
+      "quote": "接下来说明游戏化学习的三要素"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s03p1",
+      "quote": "三者缺一不可，您需要"
+    }
+  },
+  {
+    "type": "mermaid",
+    "card_id": "c2",
+    "title": "游戏化三要素",
+    "code": "flowchart LR\n  A[情境] --> B[挑战] --> C[激励]",
+    "anchor": {
+      "paragraph_id": "s03p1",
+      "quote": "三者缺一不可，您需要"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s03p2",
+      "quote": "情境对应游戏名称加故事背景"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 写进提示词\n- **情境** → 游戏名称 + 故事背景\n- **挑战** → 关卡数 + 每关题目\n- **激励** → 徽章、积分、通关剧情\n\n三块写清楚，AI 才能生成想要的游戏",
+    "anchor": {
+      "paragraph_id": "s03p2",
+      "quote": "情境对应游戏名称加故事背景"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "情境：方程魔法学院",
+    "anchor": {
+      "paragraph_id": "s03p2",
+      "quote": "比如玩家是魔法学院新生"
+    }
+  }
+]

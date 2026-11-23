@@ -1,0 +1,60 @@
+[
+  {
+    "type": "new_page",
+    "title": "行动：暂停视频完成一次练习",
+    "anchor": {
+      "paragraph_id": "s11p1",
+      "quote": "课堂部署时，可选择教师投影"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 课堂部署与使用\n- 方式：教师投影 / 小组共用设备 / 学生独立练习\n- 课前：用目标设备测试，保留本地可用版本\n- 课后：收集停留关卡与错误 → 改题与反馈",
+    "anchor": {
+      "paragraph_id": "s11p1",
+      "quote": "课堂部署时，可选择教师投影"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s11p2",
+      "quote": "现在请您暂停视频，用自己的"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 行动：暂停视频完成一次练习\n- 暂停视频：完成一次生成与复核\n- 记录：改了哪里，为什么改\n- 产出：可运行的五关HTML游戏、题目答案表、试玩检查记录",
+    "anchor": {
+      "paragraph_id": "s11p2",
+      "quote": "现在请您暂停视频，用自己的"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c2",
+    "snippet": "暂停视频：完成一次生成与复核",
+    "anchor": {
+      "paragraph_id": "s11p2",
+      "quote": "再尝试生成、修复和复核"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s11p3",
+      "quote": "如果暂时没有适合的材料"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 继续观看前\n- 没有材料？用本课虚构示例先练方法\n- 能指出**一处具体修改**，并解释为什么改\n\n**请在此暂停视频**\n练习时间不计入本视频时长",
+    "anchor": {
+      "paragraph_id": "s11p3",
+      "quote": "如果暂时没有适合的材料"
+    }
+  }
+]

@@ -1,0 +1,60 @@
+[
+  {
+    "type": "new_page",
+    "title": "开场：本课要解决的问题",
+    "anchor": {
+      "paragraph_id": "s01p1",
+      "quote": "一组练习题加上积分"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c1",
+    "content": "## 开场：本课要解决的问题\n- 利用 AI 制作闯关游戏\n- 方程魔法学院：先认概念，再解方程",
+    "anchor": {
+      "paragraph_id": "s01p1",
+      "quote": "一组练习题加上积分"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s01p1",
+      "quote": "如果学生只盯着通关"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c2",
+    "content": "## 先想一想\n练习题 + 积分 = 学习游戏？\n- 只盯通关 ≠ 理解知识点\n- 热闹 ≠ 学习\n\n目标：能试错、能反馈的**五关游戏**",
+    "anchor": {
+      "paragraph_id": "s01p1",
+      "quote": "如果学生只盯着通关"
+    }
+  },
+  {
+    "type": "highlight",
+    "target_card_id": "c1",
+    "snippet": "利用 AI 制作闯关游戏",
+    "anchor": {
+      "paragraph_id": "s01p1",
+      "quote": "今天，我们学习《利用"
+    }
+  },
+  {
+    "type": "new_column",
+    "anchor": {
+      "paragraph_id": "s01p1",
+      "quote": "请带着一个问题观看"
+    }
+  },
+  {
+    "type": "board",
+    "card_id": "c3",
+    "content": "## 带着问题观看\nAI 的第一版输出\n→ 教师**能判断、能修改、能使用**的教学成果",
+    "anchor": {
+      "paragraph_id": "s01p1",
+      "quote": "请带着一个问题观看"
+    }
+  }
+]
